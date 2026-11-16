@@ -7,7 +7,7 @@ Este documento descreve todo o ecossistema sonoro implementado com **ElevenLabs*
 ## 1. Arquitetura de Áudio (`AudioManager.gd`)
 * **Mixer de 3 Canais Independentes:**
   1. **Música (`music_volume`, `bgm_enabled`):** Toca faixas em loop (`assets/audio/bgm/bgm_<mundo>.mp3`) com *crossfade* suave (`1.1s`) entre zonas e *ducking* automático (`-5.0 dB`) sempre que uma voz está tocando.
-  2. **Efeitos Sonoros (`sfx_volume`, `sfx_enabled`):** Pool com 8 `AudioStreamPlayer` simultâneos + gerador de fallback sintético em tempo real caso algum arquivo esteja ausente.
+  2. **Efeitos Sonoros (`sfx_volume`, `sfx_enabled`):** Pool com 8 `AudioStreamPlayer` simultâneos, tabela de balanceamento por efeito (`SFX_DB_OFFSET`, atenuando efeitos intensos como `boss_roar`), suporte a `db_offset` / `fade_in_sec` em `play_sfx()` (ex.: rugido suave na cutscene inicial) e gerador de fallback sintético em tempo real caso algum arquivo esteja ausente.
   3. **Vozes & Dublagens (`voice_volume`, `voice_enabled`):** Player principal de diálogos/cutscenes + canal dedicado para gritos de magia (`_spell_voice_player`) para evitar cortes abruptos.
 * **Desbloqueio Chrome WebGL Autoplay:** O método `_input` em `AudioManager.gd` inicia automaticamente a BGM na primeira tecla ou clique do usuário caso o navegador bloqueie autoplay inicial.
 * **Persistência:** Preferências dos 3 canais salvas em `user://savegame.json`.

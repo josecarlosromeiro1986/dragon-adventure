@@ -242,7 +242,7 @@ func _show_current_slide():
 
 	var sfx_name := str(s.get("sfx", ""))
 	if sfx_name != "":
-		AudioManager.play_sfx(sfx_name)
+		AudioManager.play_sfx(sfx_name, float(s.get("sfx_db", 0.0)), float(s.get("sfx_fade", 0.0)))
 
 	var shake_val := float(s.get("shake", 0.0))
 	if shake_val > 0.0:

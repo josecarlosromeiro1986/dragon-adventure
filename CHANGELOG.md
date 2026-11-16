@@ -12,7 +12,15 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Unreleased]
 
-- Ajuste do volume/atenuação do rugido inicial (`boss_roar`) na cutscene de abertura ([#1](https://github.com/josecarlosromeiro1986/dragon-adventure/issues/1)).
+- *(Nenhuma mudança pendente)*
+
+---
+
+## [1.0.1] - 2026-11-16
+
+### Corrigido / Ajustado
+- Reduzido e suavizado o volume do rugido inicial (`boss_roar`) na cutscene de abertura para não assustar jogadores ao iniciar o jogo, com suporte a tabela de atenuação por SFX (`SFX_DB_OFFSET`) e *fade-in* opcional em `AudioManager.play_sfx()` ([#1](https://github.com/josecarlosromeiro1986/dragon-adventure/issues/1)).
+- Equilibrado também o volume de `boss_roar` nas invocações de chefes e no combate para manter o impacto sem estourar o áudio nem cobrir as falas.
 
 ---
 

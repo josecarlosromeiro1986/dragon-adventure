@@ -10,6 +10,10 @@ const WORLD_BGM_DB := {
 }
 const BGM_CROSSFADE_SEC := 1.1
 const VOICE_DUCK_OFFSET_DB := -5.0
+const SFX_BASE_DB := -3.0
+const SFX_DB_OFFSET := {
+	"boss_roar": -8.5
+}
 
 var _audio_players = []
 var _voice_player: AudioStreamPlayer
@@ -62,10 +66,10 @@ func _vol_to_db(vol: float, base_db: float) -> float:
 	return base_db + linear_to_db(clamp(vol, 0.005, 1.5))
 
 func _apply_channel_volumes():
-	var sfx_db := _vol_to_db(sfx_volume, -3.0) if sfx_enabled else -80.0
 	for p in _audio_players:
 		if is_instance_valid(p):
-			p.volume_db = sfx_db
+			var offset_db := float(p.get_meta("sfx_offset_db", 0.0))
+			p.volume_db = _vol_to_db(sfx_volume, SFX_BASE_DB + offset_db) if sfx_enabled else -80.0
 	var v_db := _vol_to_db(voice_volume, 2.0) if voice_enabled else -80.0
 	if is_instance_valid(_voice_player):
 		_voice_player.volume_db = v_db
@@ -206,18 +210,19 @@ func toggle_bgm() -> bool:
 			play_bgm(target)
 	return bgm_enabled
 
-func play_sfx(sfx_name: String):
+func play_sfx(sfx_name: String, db_offset: float = 0.0, fade_in_sec: float = 0.0):
 	if not sfx_enabled or sfx_volume <= 0.005:
 		return
+	var total_offset_db := float(SFX_DB_OFFSET.get(sfx_name, 0.0)) + db_offset
 	var path = "res://assets/audio/sfx/" + sfx_name + ".mp3"
 	if _stream_cache.has(path):
-		_play_stream(_stream_cache[path])
+		_play_stream(_stream_cache[path], total_offset_db, fade_in_sec)
 		return
 	if ResourceLoader.exists(path):
 		var stream = load(path)
 		if stream:
 			_stream_cache[path] = stream
-			_play_stream(stream)
+			_play_stream(stream, total_offset_db, fade_in_sec)
 			return
 	# Fallback sintético procedural para WebGL
 	_play_procedural_beep(sfx_name)
@@ -263,11 +268,21 @@ func stop_voice():
 		_spell_voice_player.stop()
 	_set_voice_duck(false)
 
-func _play_stream(stream: AudioStream):
+func _play_stream(stream: AudioStream, db_offset: float = 0.0, fade_in_sec: float = 0.0):
+	var target_db := _vol_to_db(sfx_volume, SFX_BASE_DB + db_offset) if sfx_enabled else -80.0
 	for p in _audio_players:
 		if not p.playing:
+			p.set_meta("sfx_offset_db", db_offset)
 			p.stream = stream
-			p.play()
+			if fade_in_sec > 0.0 and sfx_enabled:
+				p.volume_db = maxf(target_db - 22.0, -45.0)
+				p.play()
+				var tw = create_tween()
+				tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+				tw.tween_property(p, "volume_db", target_db, fade_in_sec)
+			else:
+				p.volume_db = target_db
+				p.play()
 			return
 
 func _play_procedural_beep(type: String):

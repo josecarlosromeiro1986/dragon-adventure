@@ -1,0 +1,44 @@
+{
+    "id":  "aa9a6e6e-b888-4566-a7b8-8c868340834e",
+    "name":  "Barao Ragnar",
+    "state_name":  "Idle",
+    "prompt":  "noble warrior father Baron Ragnar, heroic middle-aged knight with brown hair and beard, wearing ornate battle-worn silver plate armor, crimson red royal cape and golden shoulder pauldrons, classic 16-bit top-down JRPG pixel art hero",
+    "size":  {
+                 "width":  64,
+                 "height":  64
+             },
+    "directions":  8,
+    "created_at":  "2026-11-12T18:04:01.957416+00:00",
+    "updated_at":  "2026-11-12T18:07:42.621806+00:00",
+    "animation_count":  0,
+    "template_id":  "mannequin",
+    "view":  "low top-down",
+    "status":  "completed",
+    "rotation_urls":  {
+                          "south":  "https://backblaze.pixellab.ai/file/pixellab-characters/bd8e8fff-4476-4cbe-87b8-e0151b0ed567/aa9a6e6e-b888-4566-a7b8-8c868340834e/rotations/south.png?t=1794506862",
+                          "west":  "https://backblaze.pixellab.ai/file/pixellab-characters/bd8e8fff-4476-4cbe-87b8-e0151b0ed567/aa9a6e6e-b888-4566-a7b8-8c868340834e/rotations/west.png?t=1794506862",
+                          "east":  "https://backblaze.pixellab.ai/file/pixellab-characters/bd8e8fff-4476-4cbe-87b8-e0151b0ed567/aa9a6e6e-b888-4566-a7b8-8c868340834e/rotations/east.png?t=1794506862",
+                          "north":  "https://backblaze.pixellab.ai/file/pixellab-characters/bd8e8fff-4476-4cbe-87b8-e0151b0ed567/aa9a6e6e-b888-4566-a7b8-8c868340834e/rotations/north.png?t=1794506862",
+                          "south-east":  "https://backblaze.pixellab.ai/file/pixellab-characters/bd8e8fff-4476-4cbe-87b8-e0151b0ed567/aa9a6e6e-b888-4566-a7b8-8c868340834e/rotations/south-east.png?t=1794506862",
+                          "north-east":  "https://backblaze.pixellab.ai/file/pixellab-characters/bd8e8fff-4476-4cbe-87b8-e0151b0ed567/aa9a6e6e-b888-4566-a7b8-8c868340834e/rotations/north-east.png?t=1794506862",
+                          "north-west":  "https://backblaze.pixellab.ai/file/pixellab-characters/bd8e8fff-4476-4cbe-87b8-e0151b0ed567/aa9a6e6e-b888-4566-a7b8-8c868340834e/rotations/north-west.png?t=1794506862",
+                          "south-west":  "https://backblaze.pixellab.ai/file/pixellab-characters/bd8e8fff-4476-4cbe-87b8-e0151b0ed567/aa9a6e6e-b888-4566-a7b8-8c868340834e/rotations/south-west.png?t=1794506862"
+                      },
+    "style_settings":  {
+                           "version":  "v2.0.0+api",
+                           "no_background":  true,
+                           "generation_mode":  "pro_flash",
+                           "source_image_id":  "ab1784ce-e9f6-55ff-af76-2885314bad98",
+                           "first_frame_direction":  "south"
+                       },
+    "guidance":  null,
+    "ai_freedom":  null,
+    "tags":  [
+
+             ],
+    "group_id":  "a5e446e2-92c5-4dc3-b5b3-62f8098aa3fc",
+    "skeletons":  null,
+    "animations":  [
+
+                   ]
+}

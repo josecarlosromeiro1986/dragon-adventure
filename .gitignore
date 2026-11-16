@@ -1,0 +1,12 @@
+# Segredos e variáveis locais
+.env
+.env.local
+
+# Cache interno do Godot e builds exportados
+.godot/
+build/
+*.tmp
+*.log
+
+# Protótipos e backups arquivados
+_archive/

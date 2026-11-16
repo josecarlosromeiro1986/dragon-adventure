@@ -1,0 +1,44 @@
+{
+    "id":  "9c246f8a-6044-4795-96c3-4e50488e3be7",
+    "name":  "Aldeao da Vila",
+    "state_name":  "Idle",
+    "prompt":  "wise medieval village elder man, long white-gray beard, warm brown rustic wool tunic, wooden walking staff, kind eyes, classic 16-bit top-down JRPG pixel art NPC",
+    "size":  {
+                 "width":  64,
+                 "height":  64
+             },
+    "directions":  8,
+    "created_at":  "2026-11-12T18:03:54.374857+00:00",
+    "updated_at":  "2026-11-12T18:06:02.694385+00:00",
+    "animation_count":  0,
+    "template_id":  "mannequin",
+    "view":  "low top-down",
+    "status":  "completed",
+    "rotation_urls":  {
+                          "south":  "https://backblaze.pixellab.ai/file/pixellab-characters/bd8e8fff-4476-4cbe-87b8-e0151b0ed567/9c246f8a-6044-4795-96c3-4e50488e3be7/rotations/south.png?t=1794506762",
+                          "west":  "https://backblaze.pixellab.ai/file/pixellab-characters/bd8e8fff-4476-4cbe-87b8-e0151b0ed567/9c246f8a-6044-4795-96c3-4e50488e3be7/rotations/west.png?t=1794506762",
+                          "east":  "https://backblaze.pixellab.ai/file/pixellab-characters/bd8e8fff-4476-4cbe-87b8-e0151b0ed567/9c246f8a-6044-4795-96c3-4e50488e3be7/rotations/east.png?t=1794506762",
+                          "north":  "https://backblaze.pixellab.ai/file/pixellab-characters/bd8e8fff-4476-4cbe-87b8-e0151b0ed567/9c246f8a-6044-4795-96c3-4e50488e3be7/rotations/north.png?t=1794506762",
+                          "south-east":  "https://backblaze.pixellab.ai/file/pixellab-characters/bd8e8fff-4476-4cbe-87b8-e0151b0ed567/9c246f8a-6044-4795-96c3-4e50488e3be7/rotations/south-east.png?t=1794506762",
+                          "north-east":  "https://backblaze.pixellab.ai/file/pixellab-characters/bd8e8fff-4476-4cbe-87b8-e0151b0ed567/9c246f8a-6044-4795-96c3-4e50488e3be7/rotations/north-east.png?t=1794506762",
+                          "north-west":  "https://backblaze.pixellab.ai/file/pixellab-characters/bd8e8fff-4476-4cbe-87b8-e0151b0ed567/9c246f8a-6044-4795-96c3-4e50488e3be7/rotations/north-west.png?t=1794506762",
+                          "south-west":  "https://backblaze.pixellab.ai/file/pixellab-characters/bd8e8fff-4476-4cbe-87b8-e0151b0ed567/9c246f8a-6044-4795-96c3-4e50488e3be7/rotations/south-west.png?t=1794506762"
+                      },
+    "style_settings":  {
+                           "version":  "v2.0.0+api",
+                           "no_background":  true,
+                           "generation_mode":  "pro_flash",
+                           "source_image_id":  "434064b7-2c65-5ace-b7da-0c667f065498",
+                           "first_frame_direction":  "south"
+                       },
+    "guidance":  null,
+    "ai_freedom":  null,
+    "tags":  [
+
+             ],
+    "group_id":  "a8c5a6cc-581c-43aa-b08f-643d0a94e4c3",
+    "skeletons":  null,
+    "animations":  [
+
+                   ]
+}

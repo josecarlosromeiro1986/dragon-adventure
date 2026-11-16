@@ -1,0 +1,456 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8h5xmainscene"]
+
+[ext_resource type="Script" path="res://scripts/Main.gd" id="1_main"]
+[ext_resource type="Script" path="res://scripts/HUD.gd" id="2_hud"]
+[ext_resource type="Script" path="res://scripts/ShopModal.gd" id="3_shop"]
+[ext_resource type="Script" path="res://scripts/HuntsMapModal.gd" id="4_map"]
+[ext_resource type="Script" path="res://scripts/DialogueBox.gd" id="5_dial"]
+[ext_resource type="Script" path="res://scripts/VictoryModal.gd" id="6_vict"]
+[ext_resource type="Script" path="res://scripts/BestiaryModal.gd" id="7_best"]
+[ext_resource type="Script" path="res://scripts/MinimapWidget.gd" id="8_mini"]
+[ext_resource type="Script" path="res://scripts/InventoryModal.gd" id="9_inv"]
+[ext_resource type="Script" path="res://scripts/CutsceneModal.gd" id="10_cuts"]
+[ext_resource type="Script" path="res://scripts/SettingsModal.gd" id="11_sett"]
+[ext_resource type="Script" path="res://scripts/TitleScreen.gd" id="12_titl"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="WorldContainer" type="Node2D" parent="."]
+
+[node name="EntitiesContainer" type="Node2D" parent="."]
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(640, 360)
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="HUD" type="CanvasLayer" parent="UI"]
+script = ExtResource("2_hud")
+
+[node name="TopBar" type="PanelContainer" parent="UI/HUD"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 64.0
+grow_horizontal = 2
+
+[node name="HBox" type="HBoxContainer" parent="UI/HUD/TopBar"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="VBoxHP" type="VBoxContainer" parent="UI/HUD/TopBar/HBox"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+
+[node name="HPLabel" type="Label" parent="UI/HUD/TopBar/HBox/VBoxHP"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "HP: 100/100"
+
+[node name="HPBar" type="ProgressBar" parent="UI/HUD/TopBar/HBox/VBoxHP"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+value = 100.0
+show_percentage = false
+
+[node name="VBoxMana" type="VBoxContainer" parent="UI/HUD/TopBar/HBox"]
+custom_minimum_size = Vector2(125, 0)
+layout_mode = 2
+
+[node name="ManaLabel" type="Label" parent="UI/HUD/TopBar/HBox/VBoxMana"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Mana: 50/50"
+
+[node name="ManaBar" type="ProgressBar" parent="UI/HUD/TopBar/HBox/VBoxMana"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+value = 100.0
+show_percentage = false
+
+[node name="CashLabel" type="Label" parent="UI/HUD/TopBar/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.521569, 0.733333, 0.396078, 1)
+text = "$ 0 Notas"
+
+[node name="LevelLabel" type="Label" parent="UI/HUD/TopBar/HBox"]
+layout_mode = 2
+text = "Nv. 1 (0/50 XP)"
+
+[node name="AutoHuntBtn" type="Button" parent="UI/HUD/TopBar/HBox"]
+layout_mode = 2
+text = "Auto: OFF"
+
+[node name="BossBtn" type="Button" parent="UI/HUD/TopBar/HBox"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.270588, 0, 1)
+text = "! Chefe"
+
+[node name="MapBtn" type="Button" parent="UI/HUD/TopBar/HBox"]
+layout_mode = 2
+text = "Mapa"
+
+[node name="ShopBtn" type="Button" parent="UI/HUD/TopBar/HBox"]
+visible = false
+layout_mode = 2
+text = "Loja"
+
+[node name="BestiaryBtn" type="Button" parent="UI/HUD/TopBar/HBox"]
+layout_mode = 2
+text = "Bestiário [B]"
+
+[node name="InventoryBtn" type="Button" parent="UI/HUD/TopBar/HBox"]
+layout_mode = 2
+text = "Mochila [I]"
+
+[node name="ResetBtn" type="Button" parent="UI/HUD/TopBar/HBox"]
+layout_mode = 2
+text = "Novo Jogo"
+
+[node name="MusicBtn" type="Button" parent="UI/HUD/TopBar/HBox"]
+layout_mode = 2
+text = "Som: ON"
+
+[node name="SaveBadge" type="Label" parent="UI/HUD/TopBar/HBox"]
+modulate = Color(1, 1, 1, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.45, 0.95, 0.55, 1)
+theme_override_font_sizes/font_size = 12
+text = "Salvo!"
+
+[node name="HuntAnalyzer" type="PanelContainer" parent="UI/HUD"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -244.0
+offset_top = 70.0
+offset_right = -10.0
+offset_bottom = 260.0
+grow_horizontal = 0
+
+[node name="Margin" type="MarginContainer" parent="UI/HUD/HuntAnalyzer"]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="VBox" type="VBoxContainer" parent="UI/HUD/HuntAnalyzer/Margin"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="UI/HUD/HuntAnalyzer/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.843137, 0, 1)
+text = "HUNT ANALYZER"
+
+[node name="StatsLabel" type="Label" parent="UI/HUD/HuntAnalyzer/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Tempo: 00:00
+Abates: 0
+XP/h: 0
+Notas: +0
+Gasto: -0
+Lucro: 0"
+
+[node name="MinimapWidget" type="PanelContainer" parent="UI/HUD"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -244.0
+offset_top = 266.0
+offset_right = -10.0
+offset_bottom = 466.0
+grow_horizontal = 0
+script = ExtResource("8_mini")
+
+[node name="BottomBar" type="PanelContainer" parent="UI/HUD"]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -64.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="HBox" type="HBoxContainer" parent="UI/HUD/BottomBar"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 14
+
+[node name="FoodBtn" type="Button" parent="UI/HUD/BottomBar/HBox"]
+layout_mode = 2
+text = "Comer [Q] (7)"
+
+[node name="WeaponLabel" type="Label" parent="UI/HUD/BottomBar/HBox"]
+layout_mode = 2
+text = "Arma: Espada de Madeira | Roupas Simples"
+
+[node name="Spell1" type="Label" parent="UI/HUD/BottomBar/HBox"]
+layout_mode = 2
+text = "[1] Fogo"
+
+[node name="Spell2" type="Label" parent="UI/HUD/BottomBar/HBox"]
+layout_mode = 2
+text = "[2] Vento"
+
+[node name="Spell3" type="Label" parent="UI/HUD/BottomBar/HBox"]
+layout_mode = 2
+text = "[3] Agua"
+
+[node name="ShopModal" type="Window" parent="UI"]
+title = "Tenda do Vendedor da Vila"
+initial_position = 2
+size = Vector2i(600, 480)
+visible = false
+script = ExtResource("3_shop")
+
+[node name="Margin" type="MarginContainer" parent="UI/ShopModal"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="UI/ShopModal/Margin"]
+layout_mode = 2
+
+[node name="Header" type="HBoxContainer" parent="UI/ShopModal/Margin/VBox"]
+layout_mode = 2
+
+[node name="NotesLabel" type="Label" parent="UI/ShopModal/Margin/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.521569, 0.733333, 0.396078, 1)
+text = "Suas Notas: $ 0"
+
+[node name="CloseBtn" type="Button" parent="UI/ShopModal/Margin/VBox/Header"]
+layout_mode = 2
+text = "Fechar"
+
+[node name="Scroll" type="ScrollContainer" parent="UI/ShopModal/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ItemsVBox" type="VBoxContainer" parent="UI/ShopModal/Margin/VBox/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HuntsMapModal" type="Window" parent="UI"]
+title = "Mapa Mundi - Zonas de Caçada"
+initial_position = 2
+size = Vector2i(540, 420)
+visible = false
+script = ExtResource("4_map")
+
+[node name="Margin" type="MarginContainer" parent="UI/HuntsMapModal"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="UI/HuntsMapModal/Margin"]
+layout_mode = 2
+
+[node name="Header" type="HBoxContainer" parent="UI/HuntsMapModal/Margin/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="UI/HuntsMapModal/Margin/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.843137, 0, 1)
+text = "Selecione seu Destino"
+
+[node name="CloseBtn" type="Button" parent="UI/HuntsMapModal/Margin/VBox/Header"]
+layout_mode = 2
+text = "Fechar"
+
+[node name="Scroll" type="ScrollContainer" parent="UI/HuntsMapModal/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="WorldsVBox" type="VBoxContainer" parent="UI/HuntsMapModal/Margin/VBox/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="DialogueBox" type="Window" parent="UI"]
+title = "Diálogo"
+initial_position = 2
+size = Vector2i(500, 240)
+visible = false
+script = ExtResource("5_dial")
+
+[node name="Margin" type="MarginContainer" parent="UI/DialogueBox"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 15
+
+[node name="VBox" type="VBoxContainer" parent="UI/DialogueBox/Margin"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="UI/DialogueBox/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.843137, 0, 1)
+text = "Personagem"
+
+[node name="Text" type="Label" parent="UI/DialogueBox/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+autowrap_mode = 3
+text = "Texto do diálogo..."
+
+[node name="OkBtn" type="Button" parent="UI/DialogueBox/Margin/VBox"]
+layout_mode = 2
+text = "Entendido"
+
+[node name="VictoryModal" type="Window" parent="UI"]
+title = "VITÓRIA - O ÚLTIMO HERÓI!"
+initial_position = 2
+size = Vector2i(620, 430)
+visible = false
+script = ExtResource("6_vict")
+
+[node name="Margin" type="MarginContainer" parent="UI/VictoryModal"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="UI/VictoryModal/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="BannerTitle" type="Label" parent="UI/VictoryModal/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.843137, 0, 1)
+theme_override_font_sizes/font_size = 20
+text = "BARÃO RAGNAR RESGATADO!"
+horizontal_alignment = 1
+
+[node name="PortraitsRow" type="HBoxContainer" parent="UI/VictoryModal/Margin/VBox"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 32
+
+[node name="DanielPortrait" type="TextureRect" parent="UI/VictoryModal/Margin/VBox/PortraitsRow"]
+custom_minimum_size = Vector2(76, 76)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HeartLabel" type="Label" parent="UI/VictoryModal/Margin/VBox/PortraitsRow"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "&"
+
+[node name="BaraoPortrait" type="TextureRect" parent="UI/VictoryModal/Margin/VBox/PortraitsRow"]
+custom_minimum_size = Vector2(76, 76)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="QuoteLabel" type="Label" parent="UI/VictoryModal/Margin/VBox"]
+layout_mode = 2
+autowrap_mode = 3
+text = "\"DANIEL... MEU FILHO!\""
+horizontal_alignment = 1
+
+[node name="StatsPanel" type="PanelContainer" parent="UI/VictoryModal/Margin/VBox"]
+layout_mode = 2
+
+[node name="StatsMargin" type="MarginContainer" parent="UI/VictoryModal/Margin/VBox/StatsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 8
+
+[node name="StatsLabel" type="Label" parent="UI/VictoryModal/Margin/VBox/StatsPanel/StatsMargin"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "Resumo da Jornada..."
+horizontal_alignment = 1
+
+[node name="ButtonsRow" type="HBoxContainer" parent="UI/VictoryModal/Margin/VBox"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 16
+
+[node name="ContinueBtn" type="Button" parent="UI/VictoryModal/Margin/VBox/ButtonsRow"]
+layout_mode = 2
+text = "Continuar Explorando"
+
+[node name="NewGameBtn" type="Button" parent="UI/VictoryModal/Margin/VBox/ButtonsRow"]
+layout_mode = 2
+text = "Novo Jogo (Reiniciar)"
+
+[node name="ConfirmResetDialog" type="ConfirmationDialog" parent="UI"]
+title = "Reiniciar Campanha?"
+initial_position = 2
+size = Vector2i(420, 140)
+ok_button_text = "Sim, Novo Jogo"
+cancel_button_text = "Cancelar"
+dialog_text = "Deseja apagar todo o progresso salvo no navegador e começar uma nova aventura do nível 1?"
+
+[node name="BestiaryModal" type="Window" parent="UI"]
+title = "Bestiário Ilustrado"
+initial_position = 2
+size = Vector2i(700, 500)
+visible = false
+script = ExtResource("7_best")
+
+[node name="InventoryModal" type="Window" parent="UI"]
+title = "Mochila & Equipamentos"
+initial_position = 2
+size = Vector2i(860, 540)
+visible = false
+script = ExtResource("9_inv")
+
+[node name="CutsceneModal" type="Control" parent="UI"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("10_cuts")
+
+[node name="SettingsModal" type="Window" parent="UI"]
+title = "Configurações de Áudio & Controles"
+initial_position = 2
+size = Vector2i(620, 490)
+visible = false
+script = ExtResource("11_sett")
+
+[node name="TitleScreen" type="Control" parent="UI"]
+visible = true
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("12_titl")

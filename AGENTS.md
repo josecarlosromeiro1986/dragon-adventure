@@ -21,4 +21,11 @@
 * **História:** O Deus Dragão Lunário criou monstros e destruiu vilas. Restou apenas a **Vila Barão Ragnar**, batizada em honra ao pai de Daniel (o Barão Ragnar), que desapareceu após lutar contra o dragão. Daniel é o Último Herói que derrotará os chefes e resgatará seu pai preso em uma cabana inimiga distante.
 * **Estilo Visual & Gameplay:** Pixel art 2D top-down 45° (estilo clássico *Tibia / PokeTibia* e referência no *Poke Idle League*), com sistema de caçadas contínuas (Hunts), combate híbrido (Manual e Auto-Hunt), e o painel de telemetria *Hunt Analyzer*.
 * **Economia:** Monstros dropam **dinheiro em notas de papel (cédulas)**. Comidas curam vida.
-* **Documentação Oficial:** Consulte sempre a pasta `docs/` (`INDEX.md`, `AI_GAME_BLUEPRINT.md`, `GDD.md`, `NARRATIVE.md`, `CHARACTERS.md`, `ITEMS_AND_COMBAT.md`, `BESTIARY.md`, `WORLDS.md`, `ASSETS_PIXELLAB.md`, `AUDIO_ELEVENLABS.md`, `IMPLEMENTATION_PLAN.md`).
+* **Documentação Oficial:** Consulte sempre a pasta `docs/` (`INDEX.md`, `VERSIONING.md`, `AI_GAME_BLUEPRINT.md`, `GDD.md`, `NARRATIVE.md`, `CHARACTERS.md`, `ITEMS_AND_COMBAT.md`, `BESTIARY.md`, `WORLDS.md`, `ASSETS_PIXELLAB.md`, `AUDIO_ELEVENLABS.md`, `IMPLEMENTATION_PLAN.md`, `DEVELOPMENT_HISTORY.md`).
+
+---
+
+## 🏷️ Versionamento e Releases Obrigatórios (SemVer)
+* **Nunca publique alteração funcional em `main` sem atualizar a versão** seguindo o guia `docs/VERSIONING.md`.
+* **Fonte Única:** Atualize `config/version` em `project.godot` (`PATCH` para correções, `MINOR` para novos conteúdos/sistemas, `MAJOR` para mudanças incompatíveis). Use sempre `GameData.get_game_version()`.
+* **Registro e Entrega:** Atualize `CHANGELOG.md`, valide localmente (Godot headless + WebGL), faça commit citando a Issue (ex.: `Closes #1`), gere a tag anotada `vX.Y.Z`, envie `main` + tag e publique a **GitHub Release** correspondente confirmando o deploy no GitHub Pages.

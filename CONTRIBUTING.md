@@ -22,6 +22,7 @@ Obrigado pelo interesse em contribuir! Abaixo estão as diretrizes essenciais pa
 - Ao alterar estatísticas de monstros, armas, armaduras, mundos ou sistemas, sincronize a documentação em [`docs/`](docs/INDEX.md).
 
 ## Versionamento (`SemVer`) e Changelog
+- Siga integralmente o checklist obrigatório em [`docs/VERSIONING.md`](docs/VERSIONING.md).
 - A versão oficial do jogo é definida em um único lugar: `config/version` na seção `[application]` de [`project.godot`](project.godot).
 - Utilize [`GameData.get_game_version()`](autoload/GameData.gd) sempre que precisar exibir ou registrar a versão no código.
 - Ao preparar uma nova entrega (`PATCH`, `MINOR` ou `MAJOR`):

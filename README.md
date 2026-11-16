@@ -2,6 +2,8 @@
 
 > **RPG de Ação e Aventura 2D Top-Down / Semi-Idle em Pixel Art para Navegador Web (WebGL 2.0).**  
 > Desenvolvido em **Godot Engine 4.7.2 (GDScript)** a partir da história original concebida por Daniel e seu pai.
+>
+> 🎮 **Jogar Online (GitHub Pages):** [https://josecarlosromeiro1986.github.io/dragon-adventure/](https://josecarlosromeiro1986.github.io/dragon-adventure/)
 
 ---
 

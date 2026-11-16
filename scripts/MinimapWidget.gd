@@ -22,7 +22,9 @@ class MinimapCanvas extends Control:
 	func _gui_input(event: InputEvent):
 		if get_tree().paused:
 			return
-		if event is InputEventMouseButton and event.pressed and (event.button_index == MOUSE_BUTTON_LEFT or event.button_index == MOUSE_BUTTON_RIGHT):
+		var clicked: bool = (event is InputEventMouseButton and event.pressed and (event.button_index == MOUSE_BUTTON_LEFT or event.button_index == MOUSE_BUTTON_RIGHT))
+		var tapped: bool = (event is InputEventScreenTouch and event.pressed)
+		if clicked or tapped:
 			var ws := _get_world_size()
 			var wx = clamp((event.position.x / max(1.0, size.x)) * ws.x, 48.0, ws.x - 48.0)
 			var wy = clamp((event.position.y / max(1.0, size.y)) * ws.y, 48.0, ws.y - 48.0)

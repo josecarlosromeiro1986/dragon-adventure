@@ -52,7 +52,7 @@ func _setup_medieval_header():
 func open():
 	notes_lbl.text = "Suas Notas: $ " + str(GameState.cash_notes)
 	populate_shop()
-	popup_centered(Vector2i(680, 520))
+	MedievalUI.popup_fit(self, Vector2i(680, 520))
 
 func populate_shop():
 	for c in items_container.get_children():

@@ -171,14 +171,14 @@ func _build_ui():
 	footer.add_child(_progress_lbl)
 
 	_skip_btn = Button.new()
-	_skip_btn.text = "Pular [Esc]"
-	MedievalUI.style_button(_skip_btn, "stone", "", 12, 34)
+	_skip_btn.text = "Pular" if GameState.are_touch_controls_active() else "Pular [Esc]"
+	MedievalUI.style_button(_skip_btn, "stone", "", 12, 40)
 	_skip_btn.pressed.connect(_finish)
 	footer.add_child(_skip_btn)
 
 	_next_btn = Button.new()
 	_next_btn.text = "Avançar >>"
-	MedievalUI.style_button(_next_btn, "gold", "", 13, 34)
+	MedievalUI.style_button(_next_btn, "gold", "", 13, 40)
 	_next_btn.pressed.connect(_advance_slide)
 	footer.add_child(_next_btn)
 

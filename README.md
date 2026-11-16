@@ -17,7 +17,7 @@ No papel de **Daniel Ragnar**, o menino aventureiro com sua **faixa vermelha na 
 
 ## ✨ Principais Recursos
 
-- **Combate Híbrido (Manual + Auto-Hunt):** Jogue com mouse/teclado (`WASD`, clique esquerdo para atacar na direção do cursor, dash com `Shift` e 3 magias elementais `[1]`/`[2]`/`[3]`) ou ative o **Auto-Hunt (`[R]`)** com navegação `AStarGrid2D` e cura inteligente por comidas (`[Q]`).
+- **Combate Híbrido (Manual + Auto-Hunt + Mobile Touch):** Jogue no Desktop (`WASD`, clique esquerdo para atacar na direção do cursor, dash com `Shift` e 3 magias elementais `[1]`/`[2]`/`[3]`), em **Smartphones e Tablets** (Joystick virtual, botões táteis de **Atacar**, **Dash**, **Interagir** e magias tocáveis na barra) ou ative o **Auto-Hunt (`[R]`)** com navegação `AStarGrid2D` e cura inteligente por comidas (`[Q]`).
 - **Hunt Analyzer em Tempo Real:** Painel de telemetria inspirado em *Poke Idle League* e *Tibia* exibindo Tempo de Caçada, Abates, `XP/h`, Receita Bruta, Gasto em Comida e Lucro Líquido em notas.
 - **5 Mundos Exploráveis (`64×36` tiles / `2048×1152 px`):**
   1. **Vila Barão Ragnar** (Hub seguro com Aldeão, Vendedor/Loja e portais)

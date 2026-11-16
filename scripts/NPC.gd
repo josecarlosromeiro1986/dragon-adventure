@@ -113,6 +113,8 @@ func _ready():
 
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
+	input_pickable = true
+	input_event.connect(_on_input_event)
 
 	if npc_id == "explorador":
 		is_wandering = true
@@ -168,6 +170,19 @@ func _on_body_exited(body):
 func interact():
 	interact_cooldown = 0.25
 	interacted.emit(npc_id)
+
+func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int):
+	if get_tree().paused or interact_cooldown > 0.0:
+		return
+	var clicked: bool = (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT)
+	var tapped: bool = (event is InputEventScreenTouch and event.pressed)
+	if clicked or tapped:
+		if player_in_range:
+			interact()
+		else:
+			var players = get_tree().get_nodes_in_group("player")
+			if players.size() > 0 and is_instance_valid(players[0]) and players[0].has_method("set_click_destination"):
+				players[0].set_click_destination(global_position)
 
 func _update_wander_facing():
 	if abs(wander_dir.x) > abs(wander_dir.y):

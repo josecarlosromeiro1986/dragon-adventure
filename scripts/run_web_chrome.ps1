@@ -62,29 +62,34 @@ $AllowedOrigin = "http://localhost:$Port"
 try {
     while ($Listener.IsListening) {
         $Context = $Listener.GetContext()
-        $ReqPath = [System.Uri]::UnescapeDataString($Context.Request.Url.LocalPath).TrimStart('/', '\')
-        if ([string]::IsNullOrEmpty($ReqPath)) { $ReqPath = "index.html" }
+        try {
+            $ReqPath = [System.Uri]::UnescapeDataString($Context.Request.Url.LocalPath).TrimStart('/', '\')
+            if ([string]::IsNullOrEmpty($ReqPath)) { $ReqPath = "index.html" }
 
-        $CandidatePath = Join-Path $BuildDir $ReqPath
-        $FullPath = [System.IO.Path]::GetFullPath($CandidatePath)
-        $IsInsideBuildDir = $FullPath.StartsWith($BuildRootFull, [System.StringComparison]::OrdinalIgnoreCase)
+            $CandidatePath = Join-Path $BuildDir $ReqPath
+            $FullPath = [System.IO.Path]::GetFullPath($CandidatePath)
+            $IsInsideBuildDir = $FullPath.StartsWith($BuildRootFull, [System.StringComparison]::OrdinalIgnoreCase)
 
-        if (-not $IsInsideBuildDir) {
-            $Context.Response.StatusCode = 403
-        } elseif (Test-Path $FullPath -PathType Leaf) {
-            $Ext = [System.IO.Path]::GetExtension($FullPath).ToLower()
-            $ContentType = if ($MimeTypes.ContainsKey($Ext)) { $MimeTypes[$Ext] } else { "application/octet-stream" }
-            $Context.Response.ContentType = $ContentType
-            $Context.Response.Headers.Add("Access-Control-Allow-Origin", $AllowedOrigin)
-            $Context.Response.Headers.Add("Cache-Control", "no-cache")
-            $Bytes = [System.IO.File]::ReadAllBytes($FullPath)
-            $Context.Response.ContentLength64 = $Bytes.Length
-            $Context.Response.OutputStream.Write($Bytes, 0, $Bytes.Length)
-            $Context.Response.StatusCode = 200
-        } else {
-            $Context.Response.StatusCode = 404
+            if (-not $IsInsideBuildDir) {
+                $Context.Response.StatusCode = 403
+            } elseif (Test-Path $FullPath -PathType Leaf) {
+                $Ext = [System.IO.Path]::GetExtension($FullPath).ToLower()
+                $ContentType = if ($MimeTypes.ContainsKey($Ext)) { $MimeTypes[$Ext] } else { "application/octet-stream" }
+                $Context.Response.ContentType = $ContentType
+                $Context.Response.Headers.Add("Access-Control-Allow-Origin", $AllowedOrigin)
+                $Context.Response.Headers.Add("Cache-Control", "no-cache")
+                $Bytes = [System.IO.File]::ReadAllBytes($FullPath)
+                $Context.Response.ContentLength64 = $Bytes.Length
+                $Context.Response.StatusCode = 200
+                $Context.Response.OutputStream.Write($Bytes, 0, $Bytes.Length)
+            } else {
+                $Context.Response.StatusCode = 404
+            }
+            $Context.Response.OutputStream.Close()
+        } catch {
+            # Ignora conexões fechadas/abortadas pelo navegador durante reload ou resize
+            try { $Context.Response.Abort() } catch {}
         }
-        $Context.Response.OutputStream.Close()
     }
 } finally {
     $Listener.Stop()

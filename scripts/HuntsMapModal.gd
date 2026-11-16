@@ -26,7 +26,7 @@ func _ready():
 
 func open():
 	populate_worlds()
-	popup_centered(Vector2i(620, 480))
+	MedievalUI.popup_fit(self, Vector2i(620, 480))
 
 func populate_worlds():
 	for c in container.get_children():

@@ -79,7 +79,7 @@ func open():
 		"Notas no Bolso: %d   |   Equipamento: %s + %s" % [GameState.cash_notes, w_name, a_name]
 	)
 
-	popup_centered(Vector2i(660, 480))
+	MedievalUI.popup_fit(self, Vector2i(660, 480))
 
 func _close():
 	AudioManager.stop_voice()

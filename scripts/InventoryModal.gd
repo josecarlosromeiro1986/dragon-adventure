@@ -189,7 +189,7 @@ func _update_tab_styles():
 
 func open():
 	populate_inventory()
-	popup_centered(Vector2i(860, 540))
+	MedievalUI.popup_fit(self, Vector2i(860, 540))
 
 func populate_inventory():
 	_notes_lbl.text = "Notas: $ " + str(GameState.cash_notes)

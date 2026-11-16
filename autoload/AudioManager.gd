@@ -138,10 +138,10 @@ func _set_voice_duck(ducked: bool):
 	_duck_tween.tween_property(active_bp, "volume_db", _get_target_bgm_db(), 0.25 if ducked else 0.45)
 
 func _input(event):
-	# Desbloqueia autoplay da trilha sonora no primeiro clique/tecla no Chrome
+	# Desbloqueia autoplay da trilha sonora no primeiro clique/tecla/toque no navegador
 	var active_bp := _get_active_bgm_player()
 	if bgm_enabled and current_bgm_world != "" and active_bp and active_bp.stream and not active_bp.playing:
-		if event is InputEventKey or event is InputEventMouseButton:
+		if event is InputEventKey or event is InputEventMouseButton or event is InputEventScreenTouch:
 			if event.pressed:
 				active_bp.volume_db = _get_target_bgm_db()
 				active_bp.play()

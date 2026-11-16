@@ -141,6 +141,12 @@ func _build_ui():
 	)
 	secondary_row.add_child(cfg_btn)
 
+	var version_lbl = Label.new()
+	version_lbl.text = "Versão v%s  •  Godot WebGL" % GameData.get_game_version()
+	version_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	MedievalUI.style_label(version_lbl, Color("#B9A682"), 11, 1)
+	vbox.add_child(version_lbl)
+
 func refresh_state():
 	if not is_instance_valid(_summary_lbl):
 		return

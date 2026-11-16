@@ -11,6 +11,7 @@ config_version=5
 [application]
 
 config/name="Dragon Adventure: O Último Herói"
+config/version="1.0.0"
 config/description="RPG de Ação e Aventura em Pixel Art 2D Top-Down. Ajude o menino Daniel Ragnar a derrotar o Deus Dragão Lunário e resgatar seu pai, o Barão Ragnar."
 run/main_scene="res://scenes/Main.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")

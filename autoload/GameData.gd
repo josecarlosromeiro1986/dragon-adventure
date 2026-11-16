@@ -8,6 +8,11 @@ static func get_map_bounds(scene: Node) -> Vector2:
 		return Vector2(float(scene.map_width), float(scene.map_height))
 	return Vector2(2048.0, 1152.0)
 
+## Retorna a versão atual configurada em ProjectSettings (fonte única de versionamento).
+static func get_game_version() -> String:
+	var ver := str(ProjectSettings.get_setting("application/config/version", "1.0.0")).strip_edges()
+	return ver if ver != "" else "1.0.0"
+
 # Armas: 2 classes (Espada e Martelo) x 4 tiers (Madeira, Pedra, Ouro, Diamante)
 const WEAPONS = {
 	"sword_wood": {

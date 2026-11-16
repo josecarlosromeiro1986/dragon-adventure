@@ -105,6 +105,12 @@ func _ready():
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	footer.add_child(spacer)
 
+	var version_lbl = Label.new()
+	version_lbl.text = "v%s" % GameData.get_game_version()
+	version_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	MedievalUI.style_label(version_lbl, Color("#B9A682"), 11, 1)
+	footer.add_child(version_lbl)
+
 	var close_btn = Button.new()
 	close_btn.text = "Fechar [Esc]"
 	MedievalUI.style_button(close_btn, "stone", "", 12, 32)

@@ -21,6 +21,14 @@ Obrigado pelo interesse em contribuir! Abaixo estão as diretrizes essenciais pa
   - [`MedievalUI.create_notes_badge(...)`](scripts/MedievalUI.gd) para badges de cédulas na interface.
 - Ao alterar estatísticas de monstros, armas, armaduras, mundos ou sistemas, sincronize a documentação em [`docs/`](docs/INDEX.md).
 
+## Versionamento (`SemVer`) e Changelog
+- A versão oficial do jogo é definida em um único lugar: `config/version` na seção `[application]` de [`project.godot`](project.godot).
+- Utilize [`GameData.get_game_version()`](autoload/GameData.gd) sempre que precisar exibir ou registrar a versão no código.
+- Ao preparar uma nova entrega (`PATCH`, `MINOR` ou `MAJOR`):
+  1. Atualize `config/version` em [`project.godot`](project.godot);
+  2. Registre as mudanças em [`CHANGELOG.md`](CHANGELOG.md);
+  3. Após o merge/push em `main`, crie uma tag anotada (`git tag -a vX.Y.Z -m "Release vX.Y.Z"`) e publique a release correspondente no GitHub.
+
 ## Checklist Antes do Pull Request
 1. Importar e validar sem erros de script:
    ```powershell

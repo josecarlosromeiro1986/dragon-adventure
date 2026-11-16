@@ -18,6 +18,7 @@ signal game_reset
 signal leveled_up(new_level)
 
 const SAVE_PATH = "user://savegame.json"
+const SAVE_SCHEMA_VERSION: int = 1
 
 # Atributos vitais de Daniel Ragnar
 var player_name: String = "Daniel Ragnar"
@@ -329,6 +330,8 @@ func has_saved_progress() -> bool:
 
 func save_game():
 	var save_dict = {
+		"save_version": SAVE_SCHEMA_VERSION,
+		"game_version": GameData.get_game_version(),
 		"current_hp": current_hp,
 		"max_hp": max_hp,
 		"current_mana": current_mana,
@@ -371,6 +374,7 @@ func load_game():
 		var parse_res = json.parse(text)
 		if parse_res == OK and json.data is Dictionary:
 			var d = json.data
+			var _loaded_save_version := clampi(int(d.get("save_version", 0)), 0, 999)
 			max_hp = maxi(20, int(d.get("max_hp", max_hp)))
 			current_hp = clampi(int(d.get("current_hp", current_hp)), 1, max_hp)
 			max_mana = maxi(10, int(d.get("max_mana", max_mana)))

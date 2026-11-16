@@ -111,3 +111,4 @@ Consulte [`docs/INDEX.md`](docs/INDEX.md) para acessar toda a documentação do 
 - [**ASSETS_PIXELLAB.md**](docs/ASSETS_PIXELLAB.md) — Pipeline visual e fallbacks procedurais
 - [**AUDIO_ELEVENLABS.md**](docs/AUDIO_ELEVENLABS.md) — Pipeline de áudio, SFX e dublagem `pt-BR`
 - [**IMPLEMENTATION_PLAN.md**](docs/IMPLEMENTATION_PLAN.md) — Arquitetura detalhada e histórico das fases
+- [**DEVELOPMENT_HISTORY.md**](docs/DEVELOPMENT_HISTORY.md) — Prompt inicial fiel e linha do tempo completa do projeto até a publicação

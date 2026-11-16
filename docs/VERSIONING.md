@@ -64,5 +64,5 @@ Antes de dar como finalizada qualquer tarefa que altere o jogo:
   git push origin main
   git push origin vX.Y.Z
   ```
-- [ ] **9. Criar a GitHub Release** correspondente à tag `vX.Y.Z` com resumo das notas de lançamento e link direto para jogar no GitHub Pages.
+- [ ] **9. Criar a GitHub Release** correspondente à tag `vX.Y.Z` com resumo das notas de lançamento e link direto para jogar no GitHub Pages, **marcando todos os checkboxes (`- [x]`)** nas Issues concluídas.
 - [ ] **10. Conferir o workflow `Deploy WebGL to GitHub Pages`** no GitHub Actions (`conclusion: success`) e validar o jogo atualizado em [`https://josecarlosromeiro1986.github.io/dragon-adventure/`](https://josecarlosromeiro1986.github.io/dragon-adventure/).

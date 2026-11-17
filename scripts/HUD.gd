@@ -7,6 +7,7 @@ signal open_map_requested
 signal open_bestiary_requested
 signal open_inventory_requested
 signal open_settings_requested
+signal open_ranking_requested
 signal toggle_bestiary_requested
 signal toggle_inventory_requested
 signal close_modals_requested
@@ -24,6 +25,7 @@ signal reset_game_requested
 @onready var map_btn = $TopBar/HBox/MapBtn
 @onready var shop_btn = $TopBar/HBox/ShopBtn
 @onready var bestiary_btn = $TopBar/HBox/BestiaryBtn
+@onready var rank_btn = $TopBar/HBox/RankBtn
 @onready var inventory_btn = $TopBar/HBox/InventoryBtn
 @onready var reset_btn = $TopBar/HBox/ResetBtn
 @onready var music_btn = $TopBar/HBox/MusicBtn
@@ -52,6 +54,11 @@ var _spell_popup_title: Label
 var _spell_popup_desc: Label
 var _hovered_locked_spell_id: String = ""
 var _spell_popup_auto_hide: float = 0.0
+var _speedrun_pill: PanelContainer
+var _speedrun_lbl: Label
+var _last_speedrun_sec: int = -1
+var _last_speedrun_cat: String = ""
+var _last_speedrun_victory: bool = false
 
 const SPELL_UNLOCK_HINTS := {
 	"fireball": "Liberada ao iniciar a aventura ou falando com o Explorador [E] na Floresta dos Ecos.",
@@ -68,6 +75,7 @@ func _ready():
 	GameState.game_saved.connect(_on_game_saved)
 	GameState.game_reset.connect(_on_game_reset)
 	GameState.touch_mode_changed.connect(_sync_touch_layout)
+	GameState.run_category_changed.connect(func(_is_auto): _update_speedrun_pill(true))
 	HuntAnalyzerData.analyzer_updated.connect(_update_analyzer)
 
 	auto_hunt_btn.pressed.connect(_on_auto_hunt_toggled)
@@ -75,9 +83,11 @@ func _ready():
 	map_btn.pressed.connect(func(): open_map_requested.emit())
 	shop_btn.pressed.connect(func(): open_shop_requested.emit())
 	bestiary_btn.pressed.connect(func(): open_bestiary_requested.emit())
+	rank_btn.pressed.connect(func(): open_ranking_requested.emit())
 	inventory_btn.pressed.connect(func(): open_inventory_requested.emit())
 	reset_btn.pressed.connect(func(): reset_game_requested.emit())
-	music_btn.text = "Config / Som"
+	music_btn.text = "Config"
+	music_btn.tooltip_text = "Configurações de Áudio & Controles"
 	music_btn.pressed.connect(func(): open_settings_requested.emit())
 	bottom_food_btn.pressed.connect(func(): GameState.eat_food())
 
@@ -94,7 +104,7 @@ func _apply_medieval_hud():
 	var bottom_bar = $BottomBar
 	var bottom_hbox = $BottomBar/HBox
 
-	top_bar.add_theme_stylebox_override("panel", MedievalUI.panel_box("bar", 16, 12))
+	top_bar.add_theme_stylebox_override("panel", MedievalUI.panel_box("bar", 10, 10))
 	analyzer_panel.add_theme_stylebox_override("panel", MedievalUI.panel_box("stone", 18, 16))
 	bottom_bar.add_theme_stylebox_override("panel", MedievalUI.panel_box("bar", 16, 12))
 
@@ -120,6 +130,7 @@ func _apply_medieval_hud():
 		shop_btn.icon = shop_icon
 		shop_btn.add_theme_constant_override("icon_max_width", 16)
 	MedievalUI.style_button(bestiary_btn, "stone", "icon_bestiary_book", 11, 28)
+	MedievalUI.style_button(rank_btn, "gold", "", 11, 28)
 	MedievalUI.style_button(inventory_btn, "stone", "", 11, 28)
 	var bag_icon = SpriteFactory.get_item_icon("armor_chest")
 	if bag_icon:
@@ -148,6 +159,7 @@ func _apply_medieval_hud():
 	_wrap_spell_slot(bottom_hbox, bottom_spell2, "tornado")
 	_wrap_spell_slot(bottom_hbox, bottom_spell3, "water_bomb")
 	_build_spell_unlock_popup()
+	_build_speedrun_pill()
 	_sync_touch_layout()
 
 func _insert_icon_before(parent: Container, target: Control, tex: Texture2D, sz: int):
@@ -190,14 +202,14 @@ func _build_level_crest_group(top_hbox: HBoxContainer):
 
 	var lv_vbox = VBoxContainer.new()
 	lv_vbox.add_theme_constant_override("separation", 2)
-	lv_vbox.custom_minimum_size = Vector2(138, 0)
+	lv_vbox.custom_minimum_size = Vector2(114, 0)
 	hbox.add_child(lv_vbox)
 
 	level_label.reparent(lv_vbox)
 	MedievalUI.style_label(level_label, Color("#FFE28A"), 11, 2)
 
 	_xp_bar = ProgressBar.new()
-	_xp_bar.custom_minimum_size = Vector2(132, 8)
+	_xp_bar.custom_minimum_size = Vector2(110, 8)
 	_xp_bar.show_percentage = false
 	MedievalUI.style_progress_bar(_xp_bar, Color("#38BDF8"), Color("#8C6A2E"))
 	lv_vbox.add_child(_xp_bar)
@@ -395,9 +407,11 @@ func _hide_spell_unlock_popup():
 func _sync_touch_layout():
 	var is_touch := GameState.are_touch_controls_active()
 	var top_min_h := 34 if is_touch else 28
-	for btn in [auto_hunt_btn, map_btn, shop_btn, bestiary_btn, inventory_btn, reset_btn, music_btn]:
+	for btn in [auto_hunt_btn, map_btn, shop_btn, bestiary_btn, rank_btn, inventory_btn, reset_btn, music_btn]:
 		if is_instance_valid(btn):
 			btn.custom_minimum_size.y = maxf(btn.custom_minimum_size.y, float(top_min_h))
+	if is_instance_valid(_speedrun_pill):
+		_speedrun_pill.position = Vector2(10, 74 if is_touch else 70)
 	if is_instance_valid(bottom_food_btn):
 		bottom_food_btn.custom_minimum_size.y = 38.0 if is_touch else 32.0
 	for sp_slot in _spell_slots.values():
@@ -411,6 +425,51 @@ func _process(delta: float):
 		if _spell_popup_auto_hide <= 0.0:
 			_hide_spell_unlock_popup()
 	_update_spell_cooldown_labels()
+	_update_speedrun_pill(false)
+
+func _build_speedrun_pill():
+	_speedrun_pill = PanelContainer.new()
+	_speedrun_pill.name = "SpeedrunPill"
+	_speedrun_pill.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	_speedrun_pill.position = Vector2(10, 70)
+	_speedrun_pill.add_theme_stylebox_override("panel", MedievalUI.notes_pill_box(10, 5))
+	_speedrun_pill.mouse_filter = Control.MOUSE_FILTER_STOP
+	_speedrun_pill.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	_speedrun_pill.tooltip_text = "Cronômetro de Speedrun — clique para ver o Ranking Global"
+	_speedrun_pill.gui_input.connect(func(ev: InputEvent):
+		var is_pressed: bool = (ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT) or (ev is InputEventScreenTouch and ev.pressed)
+		if is_pressed:
+			open_ranking_requested.emit()
+			_speedrun_pill.accept_event()
+	)
+	add_child(_speedrun_pill)
+
+	_speedrun_lbl = Label.new()
+	_speedrun_lbl.text = "00:00  •  Manual"
+	MedievalUI.style_label(_speedrun_lbl, Color("#FFD76B"), 11, 2)
+	_speedrun_pill.add_child(_speedrun_lbl)
+	_update_speedrun_pill(true)
+
+func _update_speedrun_pill(force: bool):
+	if not is_instance_valid(_speedrun_lbl):
+		return
+	var sec := int(GameState.play_time_seconds)
+	var cat := GameState.get_run_category()
+	var vic := GameState.victory_achieved
+	if not force and sec == _last_speedrun_sec and cat == _last_speedrun_cat and vic == _last_speedrun_victory:
+		return
+	_last_speedrun_sec = sec
+	_last_speedrun_cat = cat
+	_last_speedrun_victory = vic
+
+	var t_txt := LeaderboardService.format_hud_time(GameState.play_time_seconds)
+	var cat_txt := "Auto-Hunt" if cat == "auto_hunt" else "Manual"
+	var prefix := "FIM " if vic else ""
+	_speedrun_lbl.text = "%s%s  •  %s" % [prefix, t_txt, cat_txt]
+	var col := Color("#7DD3FC") if cat == "auto_hunt" else Color("#FFD76B")
+	if vic:
+		col = Color("#86EFAC")
+	MedievalUI.style_label(_speedrun_lbl, col, 11, 2)
 
 func _unhandled_input(event):
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -536,10 +595,11 @@ func _update_analyzer():
 	analyzer_text.text = txt
 
 func _on_auto_hunt_toggled():
-	GameState.auto_hunt_enabled = not GameState.auto_hunt_enabled
+	GameState.set_auto_hunt_enabled(not GameState.auto_hunt_enabled)
 	auto_hunt_btn.text = "Auto: " + ("ON" if GameState.auto_hunt_enabled else "OFF")
 	MedievalUI.style_button(auto_hunt_btn, "green" if GameState.auto_hunt_enabled else "stone", "", 11, 28)
 	auto_hunt_btn.modulate = Color.WHITE
+	_update_speedrun_pill(true)
 
 func _on_music_toggled():
 	open_settings_requested.emit()
@@ -570,3 +630,4 @@ func _on_game_reset():
 	_update_cash(GameState.cash_notes)
 	_update_inventory()
 	_update_analyzer()
+	_update_speedrun_pill(true)

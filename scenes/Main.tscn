@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://scripts/CutsceneModal.gd" id="10_cuts"]
 [ext_resource type="Script" path="res://scripts/SettingsModal.gd" id="11_sett"]
 [ext_resource type="Script" path="res://scripts/TitleScreen.gd" id="12_titl"]
+[ext_resource type="Script" path="res://scripts/RankingModal.gd" id="13_rank"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
@@ -36,10 +37,10 @@ grow_horizontal = 2
 
 [node name="HBox" type="HBoxContainer" parent="UI/HUD/TopBar"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 5
 
 [node name="VBoxHP" type="VBoxContainer" parent="UI/HUD/TopBar/HBox"]
-custom_minimum_size = Vector2(140, 0)
+custom_minimum_size = Vector2(114, 0)
 layout_mode = 2
 
 [node name="HPLabel" type="Label" parent="UI/HUD/TopBar/HBox/VBoxHP"]
@@ -54,7 +55,7 @@ value = 100.0
 show_percentage = false
 
 [node name="VBoxMana" type="VBoxContainer" parent="UI/HUD/TopBar/HBox"]
-custom_minimum_size = Vector2(125, 0)
+custom_minimum_size = Vector2(102, 0)
 layout_mode = 2
 
 [node name="ManaLabel" type="Label" parent="UI/HUD/TopBar/HBox/VBoxMana"]
@@ -98,11 +99,18 @@ text = "Loja"
 
 [node name="BestiaryBtn" type="Button" parent="UI/HUD/TopBar/HBox"]
 layout_mode = 2
-text = "Bestiário [B]"
+tooltip_text = "Bestiário [B]"
+text = "Bestiário"
+
+[node name="RankBtn" type="Button" parent="UI/HUD/TopBar/HBox"]
+layout_mode = 2
+tooltip_text = "Ranking Global de Speedrun"
+text = "Rank"
 
 [node name="InventoryBtn" type="Button" parent="UI/HUD/TopBar/HBox"]
 layout_mode = 2
-text = "Mochila [I]"
+tooltip_text = "Mochila & Equipamentos [I]"
+text = "Mochila"
 
 [node name="ResetBtn" type="Button" parent="UI/HUD/TopBar/HBox"]
 layout_mode = 2
@@ -444,6 +452,13 @@ initial_position = 2
 size = Vector2i(620, 490)
 visible = false
 script = ExtResource("11_sett")
+
+[node name="RankingModal" type="Window" parent="UI"]
+title = "Ranking Global - Speedrun"
+initial_position = 2
+size = Vector2i(780, 540)
+visible = false
+script = ExtResource("13_rank")
 
 [node name="TitleScreen" type="Control" parent="UI"]
 visible = true

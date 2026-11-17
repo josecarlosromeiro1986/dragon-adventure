@@ -15,6 +15,7 @@ extends Node2D
 @onready var confirm_reset_dialog = $UI/ConfirmResetDialog
 @onready var cutscene_modal = $UI/CutsceneModal
 @onready var settings_modal = $UI/SettingsModal
+@onready var ranking_modal = $UI/RankingModal
 @onready var title_screen = $UI/TitleScreen
 
 var player: CharacterBody2D
@@ -50,6 +51,7 @@ func _ready():
 	hud.open_bestiary_requested.connect(func(): bestiary_modal.open())
 	hud.open_inventory_requested.connect(func(): inventory_modal.open())
 	hud.open_settings_requested.connect(func(): settings_modal.open())
+	hud.open_ranking_requested.connect(func(): ranking_modal.open())
 	hud.toggle_bestiary_requested.connect(_on_toggle_bestiary)
 	hud.toggle_inventory_requested.connect(_on_toggle_inventory)
 	hud.close_modals_requested.connect(_on_close_modals)
@@ -63,6 +65,11 @@ func _ready():
 	title_screen.continue_requested.connect(_on_title_continue)
 	title_screen.start_new_requested.connect(func(): confirm_reset_dialog.popup_centered(Vector2i(420, 150)))
 	title_screen.settings_requested.connect(func(): settings_modal.open())
+	title_screen.ranking_requested.connect(func(): ranking_modal.open())
+	victory_modal.open_ranking_requested.connect(func(cat: String):
+		victory_modal.hide()
+		ranking_modal.open(cat)
+	)
 	confirm_reset_dialog.confirmed.connect(func():
 		confirm_reset_dialog.hide()
 		title_screen.visible = false
@@ -98,7 +105,7 @@ func _on_title_continue():
 		call_deferred("play_intro_cutscene")
 
 func _get_all_modals() -> Array:
-	return [shop_modal, map_modal, dialogue_box, victory_modal, bestiary_modal, inventory_modal, confirm_reset_dialog, cutscene_modal, settings_modal, title_screen]
+	return [shop_modal, map_modal, dialogue_box, victory_modal, bestiary_modal, inventory_modal, confirm_reset_dialog, cutscene_modal, settings_modal, ranking_modal, title_screen]
 
 func has_open_modal() -> bool:
 	for m in _get_all_modals():
@@ -110,7 +117,7 @@ func _setup_modal_pause_hooks():
 	for m in _get_all_modals():
 		if is_instance_valid(m):
 			m.visibility_changed.connect(_sync_modal_pause)
-	for m in [shop_modal, map_modal, bestiary_modal, inventory_modal, settings_modal]:
+	for m in [shop_modal, map_modal, bestiary_modal, inventory_modal, settings_modal, ranking_modal]:
 		if is_instance_valid(m):
 			m.window_input.connect(func(ev):
 				if ev is InputEventKey and ev.pressed and not ev.echo:
@@ -148,7 +155,7 @@ func _on_toggle_inventory():
 		inventory_modal.open()
 
 func _on_close_modals():
-	for m in [shop_modal, map_modal, bestiary_modal, inventory_modal, settings_modal, confirm_reset_dialog]:
+	for m in [shop_modal, map_modal, bestiary_modal, inventory_modal, settings_modal, ranking_modal, confirm_reset_dialog]:
 		if is_instance_valid(m) and m.visible:
 			m.hide()
 
@@ -649,6 +656,7 @@ func play_boss_cutscene(boss_id: String):
 func play_ending_cutscene():
 	if not is_instance_valid(cutscene_modal):
 		return
+	GameState.freeze_victory_run()
 	var daniel_tex := SpriteFactory.get_character_texture("daniel_ragnar", "south")
 	var barao_tex := SpriteFactory.get_character_texture("barao", "south")
 	var slides := [

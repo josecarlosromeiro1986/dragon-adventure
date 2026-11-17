@@ -17,9 +17,10 @@ signal game_saved
 signal game_reset
 signal leveled_up(new_level)
 signal touch_mode_changed
+signal run_category_changed(is_auto_hunt)
 
 const SAVE_PATH = "user://savegame.json"
-const SAVE_SCHEMA_VERSION: int = 1
+const SAVE_SCHEMA_VERSION: int = 2
 
 # Atributos vitais de Daniel Ragnar
 var player_name: String = "Daniel Ragnar"
@@ -86,8 +87,10 @@ var play_time_seconds: float = 0.0
 var victory_achieved: bool = false
 var intro_cutscene_seen: bool = false
 
-# Modo Auxiliar (Auto-Hunt)
+# Modo Auxiliar (Auto-Hunt) & Categoria Speedrun
 var auto_hunt_enabled: bool = false
+var used_auto_hunt_in_run: bool = false
+var current_run_uid: String = ""
 var touch_controls_mode: String = "auto" # "auto", "on", "off"
 var _cached_web_touch: int = -1
 var mana_regen_accum: float = 0.0
@@ -95,9 +98,16 @@ var _autosave_accum: float = 0.0
 
 func _ready():
 	load_game()
+	ensure_run_uid()
 
 func _process(delta: float):
-	play_time_seconds += delta
+	if auto_hunt_enabled and not used_auto_hunt_in_run:
+		used_auto_hunt_in_run = true
+		run_category_changed.emit(true)
+		save_game()
+
+	if not victory_achieved:
+		play_time_seconds += delta
 
 	# Salvamento automático periódico em segundo plano (a cada 15s)
 	_autosave_accum += delta
@@ -331,6 +341,50 @@ func check_spell_unlocks() -> bool:
 func has_saved_progress() -> bool:
 	return intro_cutscene_seen or total_kills_all_time > 0 or level > 1 or cash_notes > 0 or get_defeated_boss_count() > 0
 
+static func generate_uuid_v4() -> String:
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	var b: Array[int] = []
+	b.resize(16)
+	for i in range(16):
+		b[i] = rng.randi_range(0, 255)
+	b[6] = (b[6] & 0x0F) | 0x40
+	b[8] = (b[8] & 0x3F) | 0x80
+	return "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x" % [
+		b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7],
+		b[8], b[9], b[10], b[11], b[12], b[13], b[14], b[15]
+	]
+
+static func _is_valid_uuid(uid: String) -> bool:
+	var rx := RegEx.new()
+	rx.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+	return rx.search(uid) != null
+
+func ensure_run_uid() -> String:
+	if not _is_valid_uuid(current_run_uid):
+		current_run_uid = generate_uuid_v4()
+	return current_run_uid
+
+func set_auto_hunt_enabled(enabled: bool):
+	auto_hunt_enabled = enabled
+	if enabled and not used_auto_hunt_in_run:
+		used_auto_hunt_in_run = true
+		run_category_changed.emit(true)
+		save_game()
+
+func get_run_category() -> String:
+	return "auto_hunt" if used_auto_hunt_in_run else "manual"
+
+func get_run_category_label() -> String:
+	return "Com Auto-Hunt" if used_auto_hunt_in_run else "Manual"
+
+func freeze_victory_run():
+	if not victory_achieved:
+		victory_achieved = true
+		ensure_run_uid()
+		save_game()
+		stats_changed.emit()
+
 func set_touch_controls_mode(mode: String):
 	var normalized := mode if mode in ["auto", "on", "off"] else "auto"
 	if touch_controls_mode != normalized:
@@ -379,6 +433,8 @@ func save_game():
 		"play_time_seconds": play_time_seconds,
 		"victory_achieved": victory_achieved,
 		"intro_cutscene_seen": intro_cutscene_seen,
+		"used_auto_hunt_in_run": used_auto_hunt_in_run,
+		"current_run_uid": ensure_run_uid(),
 		"audio_settings": AudioManager.get_settings()
 	}
 	var file = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
@@ -437,6 +493,9 @@ func load_game():
 			play_time_seconds = maxf(0.0, float(d.get("play_time_seconds", play_time_seconds)))
 			victory_achieved = bool(d.get("victory_achieved", victory_achieved))
 			intro_cutscene_seen = bool(d.get("intro_cutscene_seen", false))
+			used_auto_hunt_in_run = bool(d.get("used_auto_hunt_in_run", false))
+			var loaded_uid := str(d.get("current_run_uid", "")).strip_edges()
+			current_run_uid = loaded_uid if _is_valid_uuid(loaded_uid) else generate_uuid_v4()
 			if d.has("audio_settings") and d["audio_settings"] is Dictionary:
 				AudioManager.apply_settings(d["audio_settings"])
 
@@ -523,7 +582,10 @@ func reset_save():
 	victory_achieved = false
 	intro_cutscene_seen = false
 	auto_hunt_enabled = false
+	used_auto_hunt_in_run = false
+	current_run_uid = generate_uuid_v4()
 	mana_regen_accum = 0.0
+	run_category_changed.emit(false)
 
 	HuntAnalyzerData.reset_session()
 	current_world = "floresta"

@@ -18,6 +18,7 @@ Esta documentação foi estruturada de forma modular em Markdown para servir tan
 | [**WORLDS.md**](./WORLDS.md) | **Mundos e Mapas**: Vila Barão Ragnar, Floresta dos Ecos, Cavernas e Minas, Castelo de Lunário e Cabana Inimiga Distante. |
 | [**ASSETS_PIXELLAB.md**](./ASSETS_PIXELLAB.md) | **Integração PixelLab.ai**: Inventário completo de sprites, animações, mapas, UI 9-slice e fallbacks em `SpriteFactory.gd`. |
 | [**AUDIO_ELEVENLABS.md**](./AUDIO_ELEVENLABS.md) | **Integração ElevenLabs & Mixer**: 5 BGMs por bioma, 9 SFX, dublagens `pt-BR` e mixer de 3 canais em `AudioManager.gd`. |
+| [**RANKING_SUPABASE.md**](./RANKING_SUPABASE.md) | **Ranking Global Speedrun (Supabase + RLS)**: Schema PostgreSQL, políticas de segurança RLS, índices e fallback local offline. |
 | [**IMPLEMENTATION_PLAN.md**](./IMPLEMENTATION_PLAN.md) | **Estrutura & Plano Concluído**: Mapa real de pastas/scripts e registro das 6 fases entregues. |
 | [**DEVELOPMENT_HISTORY.md**](./DEVELOPMENT_HISTORY.md) | **Histórico Real da Jornada**: O prompt inicial fiel ao original e a cronologia completa dos 10 marcos até o GitHub. |
 | [**VERSIONING.md**](./VERSIONING.md) | **Guia e Checklist de Versionamento (`SemVer`)**: Regras obrigatórias de `PATCH`/`MINOR`/`MAJOR`, tags, Changelog e Releases no GitHub. |

@@ -4,9 +4,9 @@ class_name TouchControls
 ## Controles táteis virtuais para smartphones e tablets (joystick, ataque, dash e interação contextual).
 
 const SKILL_SPECS := [
-	{"id": "fireball", "label": "Fogo", "fill": Color("#7C2D12"), "rim": Color("#FF9E58"), "off": Vector2(-78.0, -148.0)},
-	{"id": "tornado", "label": "Vento", "fill": Color("#134E4A"), "rim": Color("#A5F3FC"), "off": Vector2(-140.0, -136.0)},
-	{"id": "water_bomb", "label": "Água", "fill": Color("#1E3A8A"), "rim": Color("#5AC8FA"), "off": Vector2(-202.0, -123.0)}
+	{"id": "fireball", "label": "Fogo", "fill": Color("#7C2D12"), "rim": Color("#FF9E58"), "off": Vector2(-174.0, -75.0)},
+	{"id": "tornado", "label": "Vento", "fill": Color("#134E4A"), "rim": Color("#A5F3FC"), "off": Vector2(-146.0, -132.0)},
+	{"id": "water_bomb", "label": "Água", "fill": Color("#1E3A8A"), "rim": Color("#5AC8FA"), "off": Vector2(-83.0, -154.0)}
 ]
 
 var _joystick: TouchThumbstick
@@ -208,7 +208,7 @@ func _layout_controls():
 
 	if is_instance_valid(_dash_pad):
 		_dash_pad.size = Vector2(62.0, 62.0)
-		_dash_pad.position = Vector2(vp.x - 178.0, base_y - 66.0)
+		_dash_pad.position = Vector2(vp.x - 249.0, base_y - 67.0)
 
 	for sp in SKILL_SPECS:
 		var sp_pad: ActionTouchPad = _skill_pads.get(sp.id)
@@ -217,8 +217,8 @@ func _layout_controls():
 			sp_pad.position = Vector2(vp.x + sp.off.x, base_y + sp.off.y)
 
 	if is_instance_valid(_interact_btn):
-		_interact_btn.size = Vector2(152.0, 42.0)
-		_interact_btn.position = Vector2(vp.x - 344.0, base_y - 50.0)
+		_interact_btn.size = Vector2(144.0, 42.0)
+		_interact_btn.position = Vector2(vp.x - 404.0, base_y - 50.0)
 
 	if is_instance_valid(_portrait_hint):
 		var hint_w := minf(420.0, vp.x - 24.0)

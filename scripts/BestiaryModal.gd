@@ -105,7 +105,7 @@ func _create_book_page(parent: HBoxContainer, heading: String, title_col: Color,
 
 func open():
 	populate_bestiary()
-	popup_centered(Vector2i(860, 520))
+	MedievalUI.popup_fit(self, Vector2i(860, 520))
 
 func populate_bestiary():
 	for c in common_vbox.get_children():

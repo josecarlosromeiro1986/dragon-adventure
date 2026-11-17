@@ -16,6 +16,7 @@ signal hitstop_requested(duration)
 signal game_saved
 signal game_reset
 signal leveled_up(new_level)
+signal touch_mode_changed
 
 const SAVE_PATH = "user://savegame.json"
 const SAVE_SCHEMA_VERSION: int = 1
@@ -87,6 +88,8 @@ var intro_cutscene_seen: bool = false
 
 # Modo Auxiliar (Auto-Hunt)
 var auto_hunt_enabled: bool = false
+var touch_controls_mode: String = "auto" # "auto", "on", "off"
+var _cached_web_touch: int = -1
 var mana_regen_accum: float = 0.0
 var _autosave_accum: float = 0.0
 
@@ -328,10 +331,31 @@ func check_spell_unlocks() -> bool:
 func has_saved_progress() -> bool:
 	return intro_cutscene_seen or total_kills_all_time > 0 or level > 1 or cash_notes > 0 or get_defeated_boss_count() > 0
 
+func set_touch_controls_mode(mode: String):
+	var normalized := mode if mode in ["auto", "on", "off"] else "auto"
+	if touch_controls_mode != normalized:
+		touch_controls_mode = normalized
+		touch_mode_changed.emit()
+
+func are_touch_controls_active() -> bool:
+	if touch_controls_mode == "on":
+		return true
+	if touch_controls_mode == "off":
+		return false
+	if DisplayServer.is_touchscreen_available() or OS.has_feature("web_android") or OS.has_feature("web_ios") or OS.has_feature("mobile"):
+		return true
+	if OS.has_feature("web"):
+		if _cached_web_touch == -1:
+			var res = JavaScriptBridge.eval("('ontouchstart' in window) || ((navigator.maxTouchPoints || 0) > 0)", true)
+			_cached_web_touch = 1 if bool(res) else 0
+		return _cached_web_touch == 1
+	return false
+
 func save_game():
 	var save_dict = {
 		"save_version": SAVE_SCHEMA_VERSION,
 		"game_version": GameData.get_game_version(),
+		"touch_controls_mode": touch_controls_mode,
 		"current_hp": current_hp,
 		"max_hp": max_hp,
 		"current_mana": current_mana,
@@ -375,6 +399,8 @@ func load_game():
 		if parse_res == OK and json.data is Dictionary:
 			var d = json.data
 			var _loaded_save_version := clampi(int(d.get("save_version", 0)), 0, 999)
+			var saved_touch := str(d.get("touch_controls_mode", touch_controls_mode))
+			touch_controls_mode = saved_touch if saved_touch in ["auto", "on", "off"] else "auto"
 			max_hp = maxi(20, int(d.get("max_hp", max_hp)))
 			current_hp = clampi(int(d.get("current_hp", current_hp)), 1, max_hp)
 			max_mana = maxi(10, int(d.get("max_mana", max_mana)))

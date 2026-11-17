@@ -14,6 +14,7 @@ var grace_timer: float = 0.85
 var cooldown_timer: float = 0.0
 
 func setup(data: Dictionary):
+	add_to_group("portals")
 	portal_data = data
 	position = data.get("pos", Vector2.ZERO)
 
@@ -96,7 +97,9 @@ func _on_body_entered(body: Node):
 func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int):
 	if get_tree().paused:
 		return
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+	var clicked: bool = (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT)
+	var tapped: bool = (event is InputEventScreenTouch and event.pressed)
+	if clicked or tapped:
 		var players = get_tree().get_nodes_in_group("player")
 		if players.size() > 0 and is_instance_valid(players[0]):
 			if players[0].global_position.distance_to(global_position) <= 130.0:

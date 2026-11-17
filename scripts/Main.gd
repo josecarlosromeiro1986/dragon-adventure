@@ -24,6 +24,7 @@ var tile_engine: TibiaTileEngine = null
 var previous_world_id: String = ""
 var arrived_via_portal: bool = false
 var hunt_spot_round_robin: int = 0
+var touch_controls: TouchControls = null
 
 # Sistema de Screen Shake e Hitstop
 var shake_intensity: float = 0.0
@@ -73,6 +74,10 @@ func _ready():
 	MedievalUI.style_button(confirm_reset_dialog.get_ok_button(), "crimson", "", 12, 28)
 	MedievalUI.style_button(confirm_reset_dialog.get_cancel_button(), "stone", "", 12, 28)
 	_setup_modal_pause_hooks()
+
+	touch_controls = TouchControls.new()
+	$UI.add_child(touch_controls)
+	$UI.move_child(touch_controls, hud.get_index() + 1)
 
 	# Configura câmera suave com limites do mapa (com margem para HUD direito/superior/inferior)
 	camera.position_smoothing_enabled = true

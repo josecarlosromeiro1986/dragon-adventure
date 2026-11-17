@@ -359,3 +359,15 @@ static func setup_modal_chrome(win: Window, panel_variant: String = "stone", pad
 		margin.add_theme_constant_override("margin_top", pad_y)
 		margin.add_theme_constant_override("margin_bottom", pad_y)
 	return frame
+
+## Centraliza uma janela modal ajustando o tamanho para caber em telas desktop, tablet ou mobile.
+static func popup_fit(win: Window, desired_size: Vector2i):
+	if not is_instance_valid(win):
+		return
+	var vp := Vector2(1280.0, 720.0)
+	if win.get_tree() and win.get_tree().root:
+		vp = win.get_tree().root.get_visible_rect().size
+	var max_w := maxi(320, int(vp.x) - 24)
+	var max_h := maxi(240, int(vp.y) - 24)
+	var fitted := Vector2i(mini(desired_size.x, max_w), mini(desired_size.y, max_h))
+	win.popup_centered(fitted)

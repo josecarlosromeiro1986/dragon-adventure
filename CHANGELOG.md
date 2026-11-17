@@ -16,6 +16,19 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ---
 
+## [1.1.0] - 2026-11-16
+
+### Adicionado
+- **Suporte Mobile & Tablet completo (`TouchControls.gd`):**
+  - Detecção automática de touchscreen (`DisplayServer` + navegador WebGL via `JavaScriptBridge`) com opção manual em `Configurações & Som` (**Auto / Sempre ON / Sempre OFF**) persistida no save (`touch_controls_mode`).
+  - **Joystick Virtual analógico** no canto inferior esquerdo e botões táteis de **Atacar** (segurar para combo contínuo com mira automática no alvo próximo), **Dash** e botão contextual **Interagir** para NPCs e Portais.
+  - **Slots de Magia clicáveis/tocáveis** diretamente na `BottomBar` (conjuram magias desbloqueadas ou exibem/alternam a dica de desbloqueio por toque em magias bloqueadas, sem depender de hover de mouse).
+  - Suporte a toque direto em **NPCs**, **Portais**, **Minimapa**, **Slots de Equipamento** e aviso discreto de orientação caso o smartphone esteja em modo retrato.
+  - Desbloqueio de música (`AudioManager._input`) também em `InputEventScreenTouch` (Android Chrome / iOS Safari) com texturas WebGL (`gl_compatibility`) universais.
+  - Redimensionamento responsivo de janelas (`MedievalUI.popup_fit`) para caber confortavelmente em desktop, tablet e smartphone ([#3](https://github.com/josecarlosromeiro1986/dragon-adventure/issues/3)).
+
+---
+
 ## [1.0.1] - 2026-11-16
 
 ### Corrigido / Ajustado

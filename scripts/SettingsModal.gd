@@ -5,6 +5,7 @@ extends Window
 signal rewatch_intro_requested
 
 var _channel_rows: Dictionary = {}
+var _touch_mode_btn: Button
 
 func _ready():
 	title = "Configurações de Áudio & Controles"
@@ -55,6 +56,7 @@ func _ready():
 	_add_channel_row(audio_vbox, "music", "Música (BGM)", false)
 	_add_channel_row(audio_vbox, "sfx", "Efeitos Sonoros (SFX)", true)
 	_add_channel_row(audio_vbox, "voice", "Vozes & Dublagens", true)
+	_add_touch_mode_row(audio_vbox)
 
 	# Painel de Controles em Pergaminho
 	var ctrl_panel = PanelContainer.new()
@@ -72,12 +74,10 @@ func _ready():
 	ctrl_vbox.add_child(ctrl_title)
 
 	var ctrl_lines := [
-		"• WASD / Setas ou Botão Direito do Mouse: Mover Daniel pelo mapa",
-		"• Clique Esquerdo ou Espaço: Atacar com a arma equipada",
-		"• Teclas [1], [2], [3]: Conjurar Bola de Fogo, Tornado e Bomba de Água",
-		"• Tecla [Q]: Comer comida automática inteligente (cura conforme HP perdido)",
-		"• Tecla [E]: Falar com NPCs (Aldeão, Vendedor, Explorador, Barão Ragnar)",
-		"• Teclas [I] e [B]: Abrir Mochila/Equipamentos e Bestiário Ilustrado"
+		"• Desktop: WASD / Setas ou Botão Direito para mover; Clique Esquerdo ou Espaço ataca",
+		"• Desktop Atalhos: [Shift] Dash, [1]/[2]/[3] Magias, [Q] Comer, [E] Falar, [I]/[B] Menus",
+		"• Mobile / Tablet: Joystick esquerdo move; botões Atac/Dash/Interagir + toque nas Magias",
+		"• Clique ou toque no Minimapa para caminhar automaticamente e use [Auto: ON] para caçar"
 	]
 	for ln in ctrl_lines:
 		var l = Label.new()
@@ -169,6 +169,53 @@ func _add_channel_row(parent: VBoxContainer, ch_id: String, label_txt: String, w
 		"pct": pct_lbl
 	}
 
+func _add_touch_mode_row(parent: VBoxContainer):
+	var row = HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	parent.add_child(row)
+
+	var lbl = Label.new()
+	lbl.text = "Controles Touch (Mobile)"
+	lbl.custom_minimum_size = Vector2(180, 0)
+	MedievalUI.style_label(lbl, Color("#F5E6C8"), 12, 2)
+	row.add_child(lbl)
+
+	_touch_mode_btn = Button.new()
+	_touch_mode_btn.custom_minimum_size = Vector2(160, 28)
+	_touch_mode_btn.pressed.connect(_on_touch_mode_cycled)
+	row.add_child(_touch_mode_btn)
+
+	var info_lbl = Label.new()
+	info_lbl.text = "Smartphone / Tablet"
+	info_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	MedievalUI.style_label(info_lbl, Color("#C6B69C"), 11, 1)
+	row.add_child(info_lbl)
+
+func _on_touch_mode_cycled():
+	var next_mode := "auto"
+	match GameState.touch_controls_mode:
+		"auto": next_mode = "on"
+		"on": next_mode = "off"
+		_: next_mode = "auto"
+	GameState.set_touch_controls_mode(next_mode)
+	_sync_touch_mode_btn()
+	GameState.save_game()
+
+func _sync_touch_mode_btn():
+	if not is_instance_valid(_touch_mode_btn):
+		return
+	match GameState.touch_controls_mode:
+		"on":
+			_touch_mode_btn.text = "Sempre ON"
+			MedievalUI.style_button(_touch_mode_btn, "green", "", 11, 28)
+		"off":
+			_touch_mode_btn.text = "Sempre OFF"
+			MedievalUI.style_button(_touch_mode_btn, "crimson", "", 11, 28)
+		_:
+			var auto_state := "Ativo" if GameState.are_touch_controls_active() else "Desktop"
+			_touch_mode_btn.text = "Auto (" + auto_state + ")"
+			MedievalUI.style_button(_touch_mode_btn, "gold", "", 11, 28)
+
 func _sync_ui_from_audio():
 	var cfg := AudioManager.get_settings()
 	_sync_row("music", bool(cfg.get("bgm_enabled", true)), float(cfg.get("music_volume", 0.85)))
@@ -215,4 +262,5 @@ func _on_channel_slider_changed(ch_id: String, val: float):
 
 func open():
 	_sync_ui_from_audio()
-	popup_centered(size)
+	_sync_touch_mode_btn()
+	MedievalUI.popup_fit(self, Vector2i(640, 520))

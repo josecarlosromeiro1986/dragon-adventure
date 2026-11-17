@@ -22,6 +22,8 @@ var spell_buffer_timer: float = 0.0
 var eat_cooldown_timer: float = 0.0
 var post_modal_guard_timer: float = 0.0
 var _mouse_attack_held: bool = false
+var _virtual_move_vec: Vector2 = Vector2.ZERO
+var _virtual_attack_held: bool = false
 
 var dash_timer: float = 0.0
 var dash_cooldown_timer: float = 0.0
@@ -324,6 +326,8 @@ func on_modal_opened():
 	spell_buffer_timer = 0.0
 	buffered_spell = ""
 	_mouse_attack_held = false
+	_virtual_attack_held = false
+	_virtual_move_vec = Vector2.ZERO
 	velocity = Vector2.ZERO
 	_reset_stuck_tracker()
 
@@ -332,8 +336,49 @@ func on_modal_closed():
 	spell_buffer_timer = 0.0
 	buffered_spell = ""
 	_mouse_attack_held = false
+	_virtual_attack_held = false
+	_virtual_move_vec = Vector2.ZERO
 	post_modal_guard_timer = 0.22
 	_reset_stuck_tracker()
+
+## Define o vetor do joystick virtual (mobile/tablet).
+func set_virtual_move_input(vec: Vector2):
+	_virtual_move_vec = vec.limit_length(1.0)
+
+## Controla o estado pressionado do botão virtual de ataque.
+func set_virtual_attack_held(held: bool):
+	_virtual_attack_held = held
+	if held and not _is_modal_blocking() and not GameState.auto_hunt_enabled:
+		if is_instance_valid(current_target):
+			var aim_dir := current_target.global_position - global_position
+			if aim_dir.length() > 4.0:
+				_update_direction_from_vector(aim_dir.normalized())
+		attack_buffer_timer = INPUT_BUFFER_TIME
+
+## Aciona o dash tático a partir dos controles touch.
+func trigger_virtual_dash():
+	if _is_modal_blocking() or GameState.auto_hunt_enabled:
+		return
+	if dash_cooldown_timer <= 0.0:
+		_trigger_dash(_virtual_move_vec)
+
+## Conjura uma magia diretamente pela barra de interface (clique/toque).
+func cast_spell_from_ui(spell_id: String):
+	if _is_modal_blocking():
+		return
+	if is_instance_valid(current_target):
+		var aim_dir := current_target.global_position - global_position
+		if aim_dir.length() > 4.0:
+			_update_direction_from_vector(aim_dir.normalized())
+	buffered_spell = spell_id
+	spell_buffer_timer = INPUT_BUFFER_TIME
+
+## Usa comida inteligente a partir dos controles touch/HUD.
+func eat_food_from_ui():
+	if _is_modal_blocking():
+		return
+	if eat_cooldown_timer <= 0.0 and GameState.eat_food():
+		eat_cooldown_timer = 0.30
 
 func _is_modal_blocking() -> bool:
 	if get_tree().paused:
@@ -431,6 +476,8 @@ func _process_manual_input(delta: float):
 		move_input.y += 1
 	if Input.is_action_pressed("ui_up") or Input.is_key_pressed(KEY_W):
 		move_input.y -= 1
+	if move_input == Vector2.ZERO and _virtual_move_vec.length() > 0.14:
+		move_input = _virtual_move_vec
 
 	if move_input != Vector2.ZERO:
 		clear_click_destination()
@@ -455,7 +502,11 @@ func _process_manual_input(delta: float):
 	# Input Buffering para Ataque Básico (clique esquerdo só conta via _unhandled_input no chão do jogo)
 	if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) or post_modal_guard_timer > 0.0:
 		_mouse_attack_held = false
-	if Input.is_key_pressed(KEY_SPACE) or _mouse_attack_held:
+	if _virtual_attack_held and is_instance_valid(current_target):
+		var aim_v := current_target.global_position - global_position
+		if aim_v.length() > 4.0:
+			_update_direction_from_vector(aim_v.normalized())
+	if Input.is_key_pressed(KEY_SPACE) or _mouse_attack_held or _virtual_attack_held:
 		attack_buffer_timer = INPUT_BUFFER_TIME
 
 	# Input Buffering para Magias Elementais

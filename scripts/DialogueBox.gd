@@ -62,7 +62,7 @@ func _build_medieval_layout():
 	text_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	MedievalUI.style_label(text_lbl, Color("#24160A"), 13, 0)
 
-	MedievalUI.style_button(ok_btn, "gold", "", 13, 34)
+	MedievalUI.style_button(ok_btn, "gold", "", 13, 40)
 
 func _resolve_speaker_portrait(speaker: String) -> Texture2D:
 	var s = speaker.to_lower()
@@ -94,5 +94,5 @@ func show_dialogue(speaker: String, text: String):
 		portrait_rect.texture = _resolve_speaker_portrait(speaker)
 	open_cooldown = 0.22
 	e_was_down = true
-	ok_btn.text = "Entendido [E]"
-	popup_centered(Vector2i(580, 265))
+	ok_btn.text = "Entendido" if GameState.are_touch_controls_active() else "Entendido [E]"
+	MedievalUI.popup_fit(self, Vector2i(580, 265))

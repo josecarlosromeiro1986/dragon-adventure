@@ -51,6 +51,7 @@ var _spell_popup_icon: TextureRect
 var _spell_popup_title: Label
 var _spell_popup_desc: Label
 var _hovered_locked_spell_id: String = ""
+var _spell_popup_auto_hide: float = 0.0
 
 const SPELL_UNLOCK_HINTS := {
 	"fireball": "Liberada ao iniciar a aventura ou falando com o Explorador [E] na Floresta dos Ecos.",
@@ -66,6 +67,7 @@ func _ready():
 	GameState.world_changed.connect(_on_world_changed)
 	GameState.game_saved.connect(_on_game_saved)
 	GameState.game_reset.connect(_on_game_reset)
+	GameState.touch_mode_changed.connect(_sync_touch_layout)
 	HuntAnalyzerData.analyzer_updated.connect(_update_analyzer)
 
 	auto_hunt_btn.pressed.connect(_on_auto_hunt_toggled)
@@ -146,6 +148,7 @@ func _apply_medieval_hud():
 	_wrap_spell_slot(bottom_hbox, bottom_spell2, "tornado")
 	_wrap_spell_slot(bottom_hbox, bottom_spell3, "water_bomb")
 	_build_spell_unlock_popup()
+	_sync_touch_layout()
 
 func _insert_icon_before(parent: Container, target: Control, tex: Texture2D, sz: int):
 	if not tex or not is_instance_valid(target):
@@ -218,8 +221,9 @@ func _create_icon_slot(parent: Control, tex: Texture2D, is_weapon_slot: bool) ->
 	slot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	slot.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	slot.tooltip_text = "Clique para abrir a Mochila [I]"
-	slot.gui_input.connect(func(ev):
-		if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
+	slot.gui_input.connect(func(ev: InputEvent):
+		var pressed: bool = (ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT) or (ev is InputEventScreenTouch and ev.pressed)
+		if pressed:
 			open_inventory_requested.emit()
 			slot.accept_event()
 	)
@@ -265,8 +269,10 @@ func _wrap_spell_slot(bottom_hbox: HBoxContainer, lbl: Label, spell_id: String):
 	lbl.reparent(row)
 	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	MedievalUI.style_label(lbl, Color("#F5E6C8"), 12, 2)
+	slot.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	slot.mouse_entered.connect(func(): _on_spell_slot_mouse_entered(spell_id))
 	slot.mouse_exited.connect(func(): _on_spell_slot_mouse_exited(spell_id))
+	slot.gui_input.connect(func(ev): _on_spell_slot_gui_input(spell_id, ev))
 	_spell_slots[spell_id] = slot
 
 func _build_spell_unlock_popup():
@@ -352,15 +358,54 @@ func _reposition_spell_popup(spell_id: String):
 	_spell_popup.position = Vector2(px, py)
 
 func _on_spell_slot_mouse_exited(spell_id: String):
-	if _hovered_locked_spell_id == spell_id:
+	if _hovered_locked_spell_id == spell_id and _spell_popup_auto_hide <= 0.0:
 		_hide_spell_unlock_popup()
+
+func _on_spell_slot_gui_input(spell_id: String, ev: InputEvent):
+	var tapped: bool = (ev is InputEventScreenTouch and ev.pressed)
+	var clicked: bool = (ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT)
+	if not tapped and not clicked:
+		return
+	var slot: Control = _spell_slots.get(spell_id)
+	if slot:
+		slot.accept_event()
+	if GameState.unlocked_spells.get(spell_id, false):
+		_hide_spell_unlock_popup()
+		var scene := get_tree().current_scene
+		var p = scene.get("player") if scene else null
+		if is_instance_valid(p) and p.has_method("cast_spell_from_ui"):
+			p.cast_spell_from_ui(spell_id)
+	else:
+		if _spell_popup.visible and _hovered_locked_spell_id == spell_id:
+			_hide_spell_unlock_popup()
+		else:
+			_spell_popup_auto_hide = 3.5
+			_on_spell_slot_mouse_entered(spell_id)
 
 func _hide_spell_unlock_popup():
 	_hovered_locked_spell_id = ""
+	_spell_popup_auto_hide = 0.0
 	if is_instance_valid(_spell_popup):
 		_spell_popup.visible = false
 
-func _process(_delta: float):
+func _sync_touch_layout():
+	var is_touch := GameState.are_touch_controls_active()
+	var top_min_h := 34 if is_touch else 28
+	for btn in [auto_hunt_btn, map_btn, shop_btn, bestiary_btn, inventory_btn, reset_btn, music_btn]:
+		if is_instance_valid(btn):
+			btn.custom_minimum_size.y = maxf(btn.custom_minimum_size.y, float(top_min_h))
+	if is_instance_valid(bottom_food_btn):
+		bottom_food_btn.custom_minimum_size.y = 38.0 if is_touch else 32.0
+	for sp_slot in _spell_slots.values():
+		if is_instance_valid(sp_slot):
+			sp_slot.custom_minimum_size = Vector2(96.0, 38.0) if is_touch else Vector2.ZERO
+	_update_inventory()
+
+func _process(delta: float):
+	if _spell_popup_auto_hide > 0.0:
+		_spell_popup_auto_hide -= delta
+		if _spell_popup_auto_hide <= 0.0:
+			_hide_spell_unlock_popup()
 	_update_spell_cooldown_labels()
 
 func _unhandled_input(event):
@@ -453,7 +498,8 @@ func _update_cash(amount: int):
 
 func _update_inventory():
 	var total_food = GameState.food_inventory.get("apple", 0) + GameState.food_inventory.get("bread", 0) + GameState.food_inventory.get("meat", 0)
-	bottom_food_btn.text = "Comer [Q] (" + str(total_food) + ")"
+	var food_prefix := "Comer (" if GameState.are_touch_controls_active() else "Comer [Q] ("
+	bottom_food_btn.text = food_prefix + str(total_food) + ")"
 
 	var w_data = GameData.WEAPONS.get(GameState.equipped_weapon, {})
 	var w_name = w_data.get("name", "Espada")

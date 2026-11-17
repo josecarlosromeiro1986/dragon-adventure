@@ -376,11 +376,15 @@ func _on_spell_slot_gui_input(spell_id: String, ev: InputEvent):
 		if is_instance_valid(p) and p.has_method("cast_spell_from_ui"):
 			p.cast_spell_from_ui(spell_id)
 	else:
-		if _spell_popup.visible and _hovered_locked_spell_id == spell_id:
-			_hide_spell_unlock_popup()
-		else:
-			_spell_popup_auto_hide = 3.5
-			_on_spell_slot_mouse_entered(spell_id)
+		show_spell_unlock_hint(spell_id)
+
+## Exibe temporariamente a dica de desbloqueio de uma magia bloqueada (compatível com touch).
+func show_spell_unlock_hint(spell_id: String):
+	if _spell_popup.visible and _hovered_locked_spell_id == spell_id:
+		_hide_spell_unlock_popup()
+	else:
+		_spell_popup_auto_hide = 3.5
+		_on_spell_slot_mouse_entered(spell_id)
 
 func _hide_spell_unlock_popup():
 	_hovered_locked_spell_id = ""

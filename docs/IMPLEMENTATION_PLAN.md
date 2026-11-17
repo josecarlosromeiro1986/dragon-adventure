@@ -39,7 +39,7 @@ dragon-adventure/
 │   ├── FloatingText.gd             # Números de dano, críticos, super efetivos, cura e notas
 │   ├── MedievalUI.gd               # Tema medieval 9-slice, notes_pill_box e estilo unificado de botões/labels
 │   ├── HUD.gd                      # Barra superior/inferior, magias clicáveis/tocáveis e Hunt Analyzer
-│   ├── TouchControls.gd            # Controles virtuais (joystick, atacar, dash e interação) para mobile/tablet
+│   ├── TouchControls.gd            # Controles virtuais (joystick, atacar, dash, skills em arco e interação) para mobile/tablet
 │   ├── MinimapWidget.gd            # Minimapa ao vivo com jogador, NPCs, monstros, chefes e portais
 │   ├── TitleScreen.gd              # Tela inicial com continuar/nova aventura e resumo do progresso salvo
 │   ├── CutsceneModal.gd            # Cutscenes cinematográficas de prólogo, chefes e resgate final

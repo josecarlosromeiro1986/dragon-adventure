@@ -16,6 +16,18 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ---
 
+## [1.2.1] - 2026-11-17
+
+### Corrigido / Otimizado
+- **TouchControls (`TouchControls.gd`):**
+  - Captura global de soltura de toque/mouse (`_input`) no Joystick e nos pads de ação para garantir liberação mesmo se o dedo deslizar para fora do controle.
+  - Substituído `PRESET_FULL_RECT` por `PRESET_TOP_LEFT` no container raiz de `TouchControls`, eliminando o aviso de sobrescrita de âncoras no Godot.
+  - Otimizado `_update_skill_pads()` para chamar `queue_redraw()` apenas quando o texto ou estado visual mudar, e unificada a detecção de modo retrato com `get_viewport().get_visible_rect().size`.
+- **AudioManager (`AudioManager.gd`):** Cancelamento seguro de tweens anteriores ao reutilizar players de SFX ou ajustar o volume do canal ([#7](https://github.com/josecarlosromeiro1986/dragon-adventure/issues/7)).
+- **Documentação (`docs/GDD.md`):** Removidos atalhos inexistentes (`J/K/L/C`) e sincronizada a tabela de controles Mobile/Touch e `TouchControls.gd`.
+
+---
+
 ## [1.2.0] - 2026-11-17
 
 ### Adicionado

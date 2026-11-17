@@ -65,10 +65,19 @@ func _vol_to_db(vol: float, base_db: float) -> float:
 		return -80.0
 	return base_db + linear_to_db(clamp(vol, 0.005, 1.5))
 
+func _kill_sfx_tween(p: AudioStreamPlayer):
+	if not p.has_meta("fade_tween"):
+		return
+	var tw = p.get_meta("fade_tween")
+	if tw is Tween and tw.is_valid():
+		tw.kill()
+	p.remove_meta("fade_tween")
+
 func _apply_channel_volumes():
 	for p in _audio_players:
 		if is_instance_valid(p):
-			var offset_db := float(p.get_meta("sfx_offset_db", 0.0))
+			_kill_sfx_tween(p)
+			var offset_db := float(p.get_meta("sfx_offset_db")) if p.has_meta("sfx_offset_db") else 0.0
 			p.volume_db = _vol_to_db(sfx_volume, SFX_BASE_DB + offset_db) if sfx_enabled else -80.0
 	var v_db := _vol_to_db(voice_volume, 2.0) if voice_enabled else -80.0
 	if is_instance_valid(_voice_player):
@@ -272,6 +281,7 @@ func _play_stream(stream: AudioStream, db_offset: float = 0.0, fade_in_sec: floa
 	var target_db := _vol_to_db(sfx_volume, SFX_BASE_DB + db_offset) if sfx_enabled else -80.0
 	for p in _audio_players:
 		if not p.playing:
+			_kill_sfx_tween(p)
 			p.set_meta("sfx_offset_db", db_offset)
 			p.stream = stream
 			if fade_in_sec > 0.0 and sfx_enabled:
@@ -280,6 +290,7 @@ func _play_stream(stream: AudioStream, db_offset: float = 0.0, fade_in_sec: floa
 				var tw = create_tween()
 				tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 				tw.tween_property(p, "volume_db", target_db, fade_in_sec)
+				p.set_meta("fade_tween", tw)
 			else:
 				p.volume_db = target_db
 				p.play()

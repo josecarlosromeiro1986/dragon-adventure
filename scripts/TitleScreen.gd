@@ -5,6 +5,7 @@ extends Control
 signal continue_requested
 signal start_new_requested
 signal settings_requested
+signal ranking_requested
 
 var _summary_lbl: Label
 var _primary_btn: Button
@@ -141,6 +142,14 @@ func _build_ui():
 	)
 	secondary_row.add_child(cfg_btn)
 
+	var rank_btn = Button.new()
+	rank_btn.text = "Ranking Global"
+	MedievalUI.style_button(rank_btn, "gold", "icon_boss_crest", 12, 34)
+	rank_btn.pressed.connect(func():
+		ranking_requested.emit()
+	)
+	secondary_row.add_child(rank_btn)
+
 	var version_lbl = Label.new()
 	version_lbl.text = "Versão v%s  •  Godot WebGL" % GameData.get_game_version()
 	version_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -150,14 +159,25 @@ func _build_ui():
 func refresh_state():
 	if not is_instance_valid(_summary_lbl):
 		return
+	var pb_manual := LeaderboardService.get_personal_best("manual")
+	var pb_auto := LeaderboardService.get_personal_best("auto_hunt")
+	var rec_parts: Array[String] = []
+	if pb_manual > 0.0:
+		rec_parts.append("Manual: " + LeaderboardService.format_exact_time(pb_manual))
+	if pb_auto > 0.0:
+		rec_parts.append("Auto: " + LeaderboardService.format_exact_time(pb_auto))
+	var rec_line := ("\nRecordes Locais — " + "  |  ".join(rec_parts)) if not rec_parts.is_empty() else ""
+
 	if GameState.has_saved_progress():
 		var w_name := str(GameData.WORLDS.get(GameState.current_world, {}).get("name", GameState.current_world))
 		var bosses_done := GameState.get_defeated_boss_count()
-		_summary_lbl.text = "Progresso Salvo: Nível %d  •  $ %d Notas  •  Chefes: %d / 6\nZona Atual: %s" % [GameState.level, GameState.cash_notes, bosses_done, w_name]
+		var cat_lbl := "Auto-Hunt" if GameState.used_auto_hunt_in_run else "Manual"
+		var t_lbl := LeaderboardService.format_hud_time(GameState.play_time_seconds)
+		_summary_lbl.text = "Progresso Salvo: Nível %d  •  $ %d Notas  •  Chefes: %d / 6  •  %s (%s)\nZona Atual: %s%s" % [GameState.level, GameState.cash_notes, bosses_done, t_lbl, cat_lbl, w_name, rec_line]
 		_primary_btn.text = "Continuar Aventura"
 		_new_btn.visible = true
 	else:
-		_summary_lbl.text = "Ajude Daniel Ragnar a enfrentar as hordas de monstros, derrotar os 6 chefes do reino e resgatar seu pai aprisionado pelo Deus Dragão Lunário!"
+		_summary_lbl.text = "Ajude Daniel Ragnar a enfrentar as hordas de monstros, derrotar os 6 chefes do reino e resgatar seu pai aprisionado pelo Deus Dragão Lunário!" + rec_line
 		_primary_btn.text = "Iniciar Aventura"
 		_new_btn.visible = false
 

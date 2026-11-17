@@ -3,9 +3,16 @@ class_name TouchControls
 
 ## Controles táteis virtuais para smartphones e tablets (joystick, ataque, dash e interação contextual).
 
+const SKILL_SPECS := [
+	{"id": "fireball", "label": "Fogo", "fill": Color("#7C2D12"), "rim": Color("#FF9E58"), "off": Vector2(-78.0, -148.0)},
+	{"id": "tornado", "label": "Vento", "fill": Color("#134E4A"), "rim": Color("#A5F3FC"), "off": Vector2(-140.0, -136.0)},
+	{"id": "water_bomb", "label": "Água", "fill": Color("#1E3A8A"), "rim": Color("#5AC8FA"), "off": Vector2(-202.0, -123.0)}
+]
+
 var _joystick: TouchThumbstick
 var _attack_pad: ActionTouchPad
 var _dash_pad: ActionTouchPad
+var _skill_pads: Dictionary = {}
 var _interact_btn: Button
 var _portrait_hint: PanelContainer
 var _portrait_hint_dismissed: bool = false
@@ -102,7 +109,9 @@ class ActionTouchPad extends Control:
 	var fill_color: Color = Color("#7C2D12")
 	var rim_color: Color = Color("#FFD76B")
 	var icon_tex: Texture2D = null
+	var badge_tex: Texture2D = null
 	var cooldown_ratio: float = 0.0
+	var dimmed: bool = false
 
 	var _touch_index: int = -1
 
@@ -143,7 +152,8 @@ class ActionTouchPad extends Control:
 		var center := size * 0.5
 		var radius := minf(size.x, size.y) * 0.5 - 3.0
 		var pressed := (_touch_index != -1)
-		var alpha := 0.55 if cooldown_ratio > 0.01 else 0.90
+		var is_dim := dimmed or cooldown_ratio > 0.01
+		var alpha := 0.48 if is_dim else 0.92
 		var bg := fill_color.lightened(0.20) if pressed else fill_color
 		bg.a = alpha
 
@@ -155,12 +165,16 @@ class ActionTouchPad extends Control:
 			var ic_sz := radius * 0.92
 			draw_texture_rect(icon_tex, Rect2(center - Vector2(ic_sz * 0.5, ic_sz * 0.65), Vector2(ic_sz, ic_sz)), false, Color(1, 1, 1, alpha))
 
+		if badge_tex:
+			var b_sz := 14.0
+			draw_texture_rect(badge_tex, Rect2(Vector2(center.x + radius * 0.25, center.y - radius * 0.72), Vector2(b_sz, b_sz)), false, Color(1, 1, 1, 0.95))
+
 		var font := ThemeDB.fallback_font
 		if font and label_text != "":
-			var f_sz := 11 if radius < 32.0 else 12
+			var f_sz := 10 if radius < 30.0 else (11 if radius < 36.0 else 12)
 			var txt_sz := font.get_string_size(label_text, HORIZONTAL_ALIGNMENT_LEFT, -1, f_sz)
-			var y_off := radius * 0.52 if icon_tex else txt_sz.y * 0.34
-			draw_string(font, Vector2(center.x - txt_sz.x * 0.5, center.y + y_off), label_text, HORIZONTAL_ALIGNMENT_LEFT, -1, f_sz, Color("#FFF8E1", alpha))
+			var y_off := radius * 0.54 if icon_tex else txt_sz.y * 0.34
+			draw_string(font, Vector2(center.x - txt_sz.x * 0.5, center.y + y_off), label_text, HORIZONTAL_ALIGNMENT_LEFT, -1, f_sz, Color("#FFF8E1", 0.96 if not dimmed else 0.78))
 
 func _ready():
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -193,12 +207,18 @@ func _layout_controls():
 		_attack_pad.position = Vector2(vp.x - 104.0, base_y - 84.0)
 
 	if is_instance_valid(_dash_pad):
-		_dash_pad.size = Vector2(64.0, 64.0)
-		_dash_pad.position = Vector2(vp.x - 182.0, base_y - 68.0)
+		_dash_pad.size = Vector2(62.0, 62.0)
+		_dash_pad.position = Vector2(vp.x - 178.0, base_y - 66.0)
+
+	for sp in SKILL_SPECS:
+		var sp_pad: ActionTouchPad = _skill_pads.get(sp.id)
+		if is_instance_valid(sp_pad):
+			sp_pad.size = Vector2(54.0, 54.0)
+			sp_pad.position = Vector2(vp.x + sp.off.x, base_y + sp.off.y)
 
 	if is_instance_valid(_interact_btn):
-		_interact_btn.size = Vector2(186.0, 44.0)
-		_interact_btn.position = Vector2(vp.x - 206.0, base_y - 138.0)
+		_interact_btn.size = Vector2(152.0, 42.0)
+		_interact_btn.position = Vector2(vp.x - 344.0, base_y - 50.0)
 
 	if is_instance_valid(_portrait_hint):
 		var hint_w := minf(420.0, vp.x - 24.0)
@@ -225,6 +245,17 @@ func _build_controls():
 	_dash_pad.rim_color = Color("#7DD3FC")
 	_dash_pad.pad_pressed.connect(_on_dash_pressed)
 	add_child(_dash_pad)
+
+	for sp in SKILL_SPECS:
+		var sp_id: String = sp.id
+		var sp_pad := ActionTouchPad.new()
+		sp_pad.label_text = sp.label
+		sp_pad.fill_color = sp.fill
+		sp_pad.rim_color = sp.rim
+		sp_pad.icon_tex = SpriteFactory.get_spell_texture(sp_id)
+		sp_pad.pad_pressed.connect(func(): _on_skill_pressed(sp_id))
+		add_child(sp_pad)
+		_skill_pads[sp_id] = sp_pad
 
 	_interact_btn = Button.new()
 	_interact_btn.visible = false
@@ -287,6 +318,17 @@ func _on_dash_pressed():
 	if p and p.has_method("trigger_virtual_dash"):
 		p.trigger_virtual_dash()
 
+func _on_skill_pressed(spell_id: String):
+	if GameState.unlocked_spells.get(spell_id, false):
+		var p := _get_player()
+		if p and p.has_method("cast_spell_from_ui"):
+			p.cast_spell_from_ui(spell_id)
+	else:
+		var scene := get_tree().current_scene
+		var hud = scene.get("hud") if scene else null
+		if is_instance_valid(hud) and hud.has_method("show_spell_unlock_hint"):
+			hud.show_spell_unlock_hint(spell_id)
+
 func _on_interact_pressed():
 	if not is_instance_valid(_interact_target):
 		return
@@ -308,6 +350,9 @@ func _sync_visibility():
 				_attack_pad.release()
 			if is_instance_valid(_dash_pad):
 				_dash_pad.release()
+			for sp_pad in _skill_pads.values():
+				if is_instance_valid(sp_pad):
+					sp_pad.release()
 
 func _process(_delta: float):
 	_sync_visibility()
@@ -324,8 +369,38 @@ func _process(_delta: float):
 		if (prev_cd > 0.01) != (_dash_pad.cooldown_ratio > 0.01):
 			_dash_pad.queue_redraw()
 
+	_update_skill_pads()
 	_update_contextual_interact(p)
 	_update_portrait_hint()
+
+func _update_skill_pads():
+	var lock_tex := MedievalUI.tex("icon_padlock")
+	for sp in SKILL_SPECS:
+		var sp_id: String = sp.id
+		var sp_pad: ActionTouchPad = _skill_pads.get(sp_id)
+		if not is_instance_valid(sp_pad):
+			continue
+		var unlocked := bool(GameState.unlocked_spells.get(sp_id, false))
+		var cd := float(GameState.spell_cooldowns.get(sp_id, 0.0))
+		var mana_cost := int(GameData.SPELLS.get(sp_id, {}).get("mana_cost", 0))
+		var no_mana := unlocked and GameState.current_mana < mana_cost
+
+		var new_label: String = sp.label
+		if not unlocked:
+			new_label = "Bloq."
+		elif cd > 0.0:
+			new_label = "%.1fs" % cd
+
+		var new_cd := maxf(0.0, cd)
+		var new_dim := (not unlocked) or no_mana
+		var new_badge: Texture2D = null if unlocked else lock_tex
+
+		if sp_pad.label_text != new_label or (sp_pad.cooldown_ratio > 0.01) != (new_cd > 0.01) or sp_pad.dimmed != new_dim or sp_pad.badge_tex != new_badge or new_cd > 0.0:
+			sp_pad.label_text = new_label
+			sp_pad.cooldown_ratio = new_cd
+			sp_pad.dimmed = new_dim
+			sp_pad.badge_tex = new_badge
+			sp_pad.queue_redraw()
 
 func _update_contextual_interact(p: Node):
 	_interact_target = null

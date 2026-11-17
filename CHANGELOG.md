@@ -16,6 +16,16 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ---
 
+## [1.2.0] - 2026-11-17
+
+### Adicionado
+- **Atalhos Táteis de Magias ao lado de Atacar e Dash (`TouchControls.gd`):**
+  - Adicionados 3 pads circulares em arco ergonômico logo acima/à esquerda de **ATACAR** e **DASH** para conjurar **Fogo**, **Vento** e **Água** sem tirar o polegar direito da área de combate ([#5](https://github.com/josecarlosromeiro1986/dragon-adventure/issues/5)).
+  - Feedback visual em tempo real nos botões de magia: contagem regressiva durante *cooldown*, escurecimento por mana insuficiente e ícone de cadeado (`Bloq.`) com dica de desbloqueio ao tocar em magias bloqueadas.
+  - Botão contextual **Interagir** reposicionado à esquerda do **DASH** para zero sobreposição com o arco de skills.
+
+---
+
 ## [1.1.0] - 2026-11-16
 
 ### Adicionado

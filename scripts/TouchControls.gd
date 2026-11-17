@@ -41,6 +41,14 @@ class TouchThumbstick extends Control:
 			vector_changed.emit(Vector2.ZERO)
 			queue_redraw()
 
+	func _input(event: InputEvent):
+		if _touch_index == -1:
+			return
+		if event is InputEventScreenTouch and not event.pressed and event.index == _touch_index:
+			reset()
+		elif event is InputEventMouseButton and not event.pressed and event.button_index == MOUSE_BUTTON_LEFT and _touch_index == -99:
+			reset()
+
 	func _gui_input(event: InputEvent):
 		var center := size * 0.5
 		if event is InputEventScreenTouch:
@@ -124,6 +132,14 @@ class ActionTouchPad extends Control:
 			pad_released.emit()
 			queue_redraw()
 
+	func _input(event: InputEvent):
+		if _touch_index == -1:
+			return
+		if event is InputEventScreenTouch and not event.pressed and event.index == _touch_index:
+			release()
+		elif event is InputEventMouseButton and not event.pressed and event.button_index == MOUSE_BUTTON_LEFT and _touch_index == -99:
+			release()
+
 	func _gui_input(event: InputEvent):
 		if event is InputEventScreenTouch:
 			if event.pressed and _touch_index == -1:
@@ -178,7 +194,7 @@ class ActionTouchPad extends Control:
 
 func _ready():
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	set_anchors_preset(Control.PRESET_TOP_LEFT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	z_index = 25
 	_build_controls()
@@ -395,7 +411,7 @@ func _update_skill_pads():
 		var new_dim := (not unlocked) or no_mana
 		var new_badge: Texture2D = null if unlocked else lock_tex
 
-		if sp_pad.label_text != new_label or (sp_pad.cooldown_ratio > 0.01) != (new_cd > 0.01) or sp_pad.dimmed != new_dim or sp_pad.badge_tex != new_badge or new_cd > 0.0:
+		if sp_pad.label_text != new_label or (sp_pad.cooldown_ratio > 0.01) != (new_cd > 0.01) or sp_pad.dimmed != new_dim or sp_pad.badge_tex != new_badge:
 			sp_pad.label_text = new_label
 			sp_pad.cooldown_ratio = new_cd
 			sp_pad.dimmed = new_dim
@@ -429,6 +445,6 @@ func _update_contextual_interact(p: Node):
 func _update_portrait_hint():
 	if _portrait_hint_dismissed or not is_instance_valid(_portrait_hint):
 		return
-	var win_sz := DisplayServer.window_get_size()
-	var is_portrait := win_sz.y > int(float(win_sz.x) * 1.15)
+	var vp := get_viewport().get_visible_rect().size if get_viewport() else Vector2(1280.0, 720.0)
+	var is_portrait := vp.y > vp.x * 1.15
 	_portrait_hint.visible = is_portrait

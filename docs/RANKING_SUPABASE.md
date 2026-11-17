@@ -7,87 +7,51 @@ Documentação da arquitetura de backend e banco de dados do **Sistema de Rank G
 ## 1. Projeto Supabase e Modelo de Segurança
 
 * **Project Ref:** `tgwoptupssqptvpmuija`
-* **Endpoint REST (Data API):** `https://tgwoptupssqptvpmuija.supabase.co/rest/v1/speedrun_ranks`
+* **Endpoint REST de Leitura:** `https://tgwoptupssqptvpmuija.supabase.co/rest/v1/speedrun_ranks` (`SELECT` público via RLS)
+* **Endpoint RPC de Submissão:** `https://tgwoptupssqptvpmuija.supabase.co/rest/v1/rpc/submit_speedrun_score`
 * **Autenticação no Cliente WebGL (`autoload/LeaderboardService.gd`):**
   * Utiliza **apenas** a `SUPABASE_URL` pública e a `Publishable Key` pública (`sb_publishable_...`) enviada no cabeçalho HTTP `apikey`.
   * **Nenhuma** `service_role`, `secret` key ou senha do PostgreSQL existe no código-fonte ou no pacote `.pck` exportado para WebGL.
-  * Todas as escritas e leituras são protegidas diretamente no PostgreSQL por **Row Level Security (RLS)**, `GRANT` explícito mínimo e `CHECK constraints`.
+  * Escritas diretas (`INSERT`, `UPDATE`, `DELETE`) em `public.speedrun_ranks` ficam **revogadas** para `anon`/`authenticated`; toda publicação passa pela RPC `public.submit_speedrun_score(...)` com validação rigorosa de entrada e controle de propriedade em `private.speedrun_owners` (`sha256` do token local).
 
 ---
 
-## 2. Schema SQL, Índices e Políticas RLS
+## 2. Schema SQL, Unicidade de Apelido e Políticas RLS
 
-O schema aplicado em `public.speedrun_ranks` separa exatamente as duas categorias competitivas (**`manual`** e **`auto_hunt`**), garante unicidade por corrida (`run_uid`) para evitar submissões duplicadas e impede `UPDATE` ou `DELETE` por clientes:
+O schema garante:
+1. Separação competitiva nas categorias **`manual`** e **`auto_hunt`**.
+2. **Apelido único global (*case-insensitive*) por jogador:** o primeiro envio de um apelido vincula `lower(btrim(player_name))` ao hash SHA-256 do `player_token` gerado localmente no navegador (`private.speedrun_owners`, inacessível via Data API).
+3. **Atualização segura de recorde próprio:** apenas o dono do token pode enviar novamente com aquele apelido; se bater seu tempo naquela categoria, seu registro é atualizado mantendo **1 melhor tempo por jogador/categoria**.
 
 ```sql
-create table if not exists public.speedrun_ranks (
-  id uuid primary key default gen_random_uuid(),
-  run_uid uuid not null unique default gen_random_uuid(),
-  player_name text not null,
-  category text not null,
-  time_seconds numeric(10, 2) not null,
-  level integer not null,
-  total_kills integer not null default 0,
-  bosses_defeated smallint not null default 6,
-  game_version text not null,
-  created_at timestamptz not null default now(),
-  constraint speedrun_ranks_player_name_chk check (
-    player_name = btrim(player_name)
-    and char_length(player_name) between 2 and 20
-    and player_name !~ '[[:cntrl:]<>]'
-  ),
-  constraint speedrun_ranks_category_chk check (
-    category in ('manual', 'auto_hunt')
-  ),
-  constraint speedrun_ranks_time_seconds_chk check (
-    time_seconds >= 10 and time_seconds <= 864000
-  ),
-  constraint speedrun_ranks_level_chk check (
-    level >= 1 and level <= 999
-  ),
-  constraint speedrun_ranks_total_kills_chk check (
-    total_kills >= 0 and total_kills <= 10000000
-  ),
-  constraint speedrun_ranks_bosses_chk check (
-    bosses_defeated >= 1 and bosses_defeated <= 6
-  ),
-  constraint speedrun_ranks_version_chk check (
-    char_length(game_version) between 3 and 16
-    and game_version ~ '^[0-9]+\.[0-9]+\.[0-9]+([\-+][A-Za-z0-9\.-]+)?$'
-  )
+create schema if not exists private;
+revoke all on schema private from public, anon, authenticated;
+
+create table if not exists private.speedrun_owners (
+  name_key text primary key,
+  owner_token_hash text not null,
+  created_at timestamptz not null default now()
 );
 
-create index if not exists speedrun_ranks_category_time_idx
-  on public.speedrun_ranks (category, time_seconds asc, created_at asc);
+alter table private.speedrun_owners enable row level security;
+revoke all on table private.speedrun_owners from public, anon, authenticated;
+grant all on table private.speedrun_owners to service_role;
 
-alter table public.speedrun_ranks enable row level security;
-
-revoke all on table public.speedrun_ranks from public, anon, authenticated;
-grant select, insert on table public.speedrun_ranks to anon, authenticated;
-grant all on table public.speedrun_ranks to service_role;
-
-create policy "Public leaderboard is readable by everyone"
-  on public.speedrun_ranks
-  for select
+create policy "No direct access to speedrun owners"
+  on private.speedrun_owners
+  for all
   to anon, authenticated
-  using (true);
+  using (false)
+  with check (false);
 
-create policy "Anyone can submit a validated speedrun"
-  on public.speedrun_ranks
-  for insert
-  to anon, authenticated
-  with check (
-    category in ('manual', 'auto_hunt')
-    and time_seconds >= 10
-    and time_seconds <= 864000
-    and player_name = btrim(player_name)
-    and char_length(player_name) between 2 and 20
-    and level between 1 and 999
-    and bosses_defeated between 1 and 6
-  );
+create unique index if not exists speedrun_ranks_unique_name_cat_idx
+  on public.speedrun_ranks (lower(btrim(player_name)), category);
+
+revoke insert, update, delete on table public.speedrun_ranks from public, anon, authenticated;
+grant select on table public.speedrun_ranks to anon, authenticated;
 ```
 
-> Também foi revogado `EXECUTE` de `public.rls_auto_enable()` para `public`, `anon` e `authenticated`, zerando todos os alertas dos Security Advisors do Supabase.
+> A definição completa da função RPC `public.submit_speedrun_score(uuid, text, text, numeric, integer, integer, integer, text, text)` (`SECURITY DEFINER SET search_path = ''`) está aplicada diretamente no projeto Supabase e bloqueia `invalid_name`, `name_taken` e tempos `< 10s`.
 
 ---
 
@@ -97,6 +61,7 @@ create policy "Anyone can submit a validated speedrun"
    * `GameState.used_auto_hunt_in_run` nasce `false` em toda nova aventura e só é resetado em `GameState.reset_save()`.
    * Ativar `Auto: ON` mesmo que por um instante define definitivamente `used_auto_hunt_in_run = true` (persistido em `user://savegame.json`), classificando a run como **`Com Auto-Hunt`**.
    * Ao iniciar o resgate do Barão Ragnar (`Main.gd:play_ending_cutscene()`), `GameState.freeze_victory_run()` marca `victory_achieved = true` e congela `play_time_seconds`.
-2. **Persistência Local Independente (`user://speedrun_ranks.json`):**
-   * Fica separada de `user://savegame.json`, permitindo iniciar **Novo Jogo** sem apagar os recordes pessoais locais nem o apelido salvo.
+2. **Apelido Próprio + Persistência Local Independente (`user://speedrun_ranks.json`):**
+   * O campo de apelido inicia **vazio** na primeira vitória (sem pré-preencher `"Daniel Ragnar"`), exigindo que cada jogador escolha seu apelido único.
+   * Armazena `player_token` e o histórico local de corridas separado de `user://savegame.json`, permitindo iniciar **Novo Jogo** sem apagar recordes nem perder a titularidade do apelido no navegador.
    * Funciona como *fallback* automático quando o navegador estiver offline ou a API temporariamente inacessível.

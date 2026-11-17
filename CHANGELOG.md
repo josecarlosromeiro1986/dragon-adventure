@@ -20,7 +20,7 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ### Adicionado
 - **Sistema de Rank Global / Speedrun por Categoria (`LeaderboardService.gd`, `RankingModal.gd`, `GameState.gd`):**
-  - Integração online com **Supabase PostgreSQL + Data API + RLS** (`public.speedrun_ranks`) utilizando apenas a `Publishable Key` pública no cliente WebGL e validação no banco (`CHECK` + políticas apenas `SELECT` e `INSERT`) ([#9](https://github.com/josecarlosromeiro1986/dragon-adventure/issues/9)).
+  - Integração online com **Supabase PostgreSQL + Data API + RLS** (`public.speedrun_ranks` + `private.speedrun_owners` + RPC `submit_speedrun_score`) utilizando apenas a `Publishable Key` pública no cliente WebGL e validação no servidor (`CHECK`, unicidade *case-insensitive* de apelido por jogador via hash SHA-256 de token local, e atualização automática apenas quando o próprio jogador bate seu recorde) ([#9](https://github.com/josecarlosromeiro1986/dragon-adventure/issues/9)).
   - Separação fiel e irreversível por run em duas categorias competitivas: **Sem Auto-Hunt (Manual)** vs **Com Auto-Hunt** (persistida em `used_auto_hunt_in_run` dentro do save da campanha; ativar `Auto: ON` mesmo por 1 segundo classifica a run como Com Auto-Hunt).
   - Congelamento automático do tempo oficial da run ao iniciar o resgate do Barão Ragnar (`GameState.freeze_victory_run()`).
   - Cronômetro live e badge de categoria na `HUD` (`SpeedrunPill` + botão **Rank**), acesso pela `TitleScreen` e envio direto com apelido personalizável e destaque de **Recorde Pessoal / Top Global** na `VictoryModal`.

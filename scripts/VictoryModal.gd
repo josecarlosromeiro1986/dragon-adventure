@@ -84,7 +84,7 @@ func _apply_medieval_victory_layout():
 	submit_row.add_child(nick_lbl)
 
 	_name_input = LineEdit.new()
-	_name_input.placeholder_text = "Ex: DanielHeroi"
+	_name_input.placeholder_text = "Seu apelido único (2-20)"
 	_name_input.max_length = 20
 	_name_input.custom_minimum_size = Vector2(170, 32)
 	var line_sb := StyleBoxFlat.new()
@@ -147,12 +147,10 @@ func open():
 	var time_str := LeaderboardService.format_exact_time(GameState.play_time_seconds)
 	var is_pb := LeaderboardService.is_personal_best(cat, GameState.play_time_seconds, uid)
 
-	# Registra a corrida localmente de forma idempotente (independe do save da campanha)
+	# Registra a corrida localmente de forma idempotente (sem pré-preencher "Daniel Ragnar")
 	var default_nick := LeaderboardService.last_player_name
-	if default_nick.length() < 2:
-		default_nick = "Daniel Ragnar"
 	if is_instance_valid(_name_input):
-		_name_input.text = default_nick
+		_name_input.text = default_nick if default_nick.length() >= 2 else ""
 	LeaderboardService.record_local_run(default_nick)
 
 	var w_name = GameData.WEAPONS.get(GameState.equipped_weapon, {}).get("name", "Espada")
@@ -220,14 +218,26 @@ func _on_submission_finished(success: bool, entry: Dictionary, error_msg: String
 		_submit_btn.text = "Enviado ao Rank!"
 		_submit_btn.disabled = true
 		_name_input.editable = false
-		_submit_status_lbl.text = "Tempo publicado com sucesso no Ranking Global (%s)!" % LeaderboardService.format_category_name(str(entry.get("category", "manual")))
+		var st := str(entry.get("submit_status", "inserted"))
+		var cat_lbl := LeaderboardService.format_category_name(str(entry.get("category", "manual")))
+		if st == "updated_best":
+			var prev_t := LeaderboardService.format_exact_time(float(entry.get("previous_time", 0.0)))
+			var new_t := LeaderboardService.format_exact_time(float(entry.get("best_time", 0.0)))
+			_submit_status_lbl.text = "Novo recorde pessoal atualizado no Ranking (%s): %s -> %s!" % [cat_lbl, prev_t, new_t]
+		elif st == "kept_existing_best":
+			var best_t := LeaderboardService.format_exact_time(float(entry.get("best_time", 0.0)))
+			_submit_status_lbl.text = "Salvo localmente! Seu melhor tempo anterior (%s) segue no Rank (%s)." % [best_t, cat_lbl]
+		else:
+			_submit_status_lbl.text = "Tempo publicado com sucesso no Ranking Global (%s)!" % cat_lbl
 		MedievalUI.style_label(_submit_status_lbl, Color("#86EFAC"), 11, 2)
 	else:
 		_submit_btn.text = "Tentar Novamente"
 		_submit_btn.disabled = false
 		_name_input.editable = true
+		if str(entry.get("submit_status", "")) == "name_taken":
+			_name_input.grab_focus()
 		_submit_status_lbl.text = error_msg if error_msg != "" else "Não foi possível enviar agora."
-		MedievalUI.style_label(_submit_status_lbl, Color("#FDE68A"), 11, 2)
+		MedievalUI.style_label(_submit_status_lbl, Color("#FCA5A5") if str(entry.get("submit_status", "")) == "name_taken" else Color("#FDE68A"), 11, 2)
 
 func _close():
 	AudioManager.stop_voice()

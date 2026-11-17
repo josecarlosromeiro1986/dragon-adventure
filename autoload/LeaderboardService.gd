@@ -8,11 +8,13 @@ signal submission_finished(success: bool, entry: Dictionary, error_msg: String)
 const SUPABASE_URL := "https://tgwoptupssqptvpmuija.supabase.co"
 const SUPABASE_PUBLISHABLE_KEY := "sb_publishable_r5Ammd2iO2rOE5eFn8mGaw_Hpo_wThb"
 const TABLE_NAME := "speedrun_ranks"
+const SUBMIT_RPC_NAME := "submit_speedrun_score"
 const LOCAL_RANKS_PATH := "user://speedrun_ranks.json"
 const MIN_GLOBAL_TIME_SECONDS: float = 10.0
 const MAX_LOCAL_RECORDS: int = 100
 
 var last_player_name: String = ""
+var _player_token: String = ""
 var local_records: Array = []
 var _remote_cache: Dictionary = {
 	"manual": [],
@@ -30,6 +32,13 @@ var _pending_js_reqs: Dictionary = {}
 
 func _ready():
 	_load_local_data()
+	_ensure_player_token()
+
+func _ensure_player_token() -> String:
+	if _player_token.length() < 16:
+		_player_token = GameState.generate_uuid_v4() + "-" + GameState.generate_uuid_v4().substr(0, 8)
+		_save_local_data()
+	return _player_token
 
 static func normalize_category(category: String) -> String:
 	return "auto_hunt" if category == "auto_hunt" else "manual"
@@ -113,6 +122,7 @@ func _load_local_data():
 	if json.parse(text) == OK and json.data is Dictionary:
 		var d: Dictionary = json.data
 		last_player_name = sanitize_player_name(str(d.get("player_name", "")))
+		_player_token = str(d.get("player_token", "")).strip_edges()
 		local_records.clear()
 		if d.has("local_records") and d["local_records"] is Array:
 			for item in d["local_records"]:
@@ -123,6 +133,7 @@ func _load_local_data():
 func _save_local_data():
 	var payload := {
 		"player_name": last_player_name,
+		"player_token": _player_token,
 		"local_records": local_records
 	}
 	var f := FileAccess.open(LOCAL_RANKS_PATH, FileAccess.WRITE)
@@ -253,7 +264,7 @@ func record_local_run(player_name: String) -> Dictionary:
 	elif last_player_name.length() >= 2:
 		cleaned = last_player_name
 	else:
-		cleaned = "Daniel Ragnar"
+		cleaned = "Você (Local)"
 
 	var entry := build_current_run_entry(cleaned)
 	var uid := str(entry["run_uid"])
@@ -441,6 +452,7 @@ func submit_current_run(raw_player_name: String):
 		submission_finished.emit(false, {}, val_err)
 		return
 
+	var prev_saved_name := last_player_name
 	var entry := record_local_run(raw_player_name)
 	var uid := str(entry["run_uid"])
 
@@ -452,16 +464,17 @@ func submit_current_run(raw_player_name: String):
 		submission_finished.emit(false, entry, "Tempo abaixo de 10s foi salvo nos Meus Recordes locais, mas não entra no Rank Global.")
 		return
 
-	var url := "%s/rest/v1/%s" % [SUPABASE_URL, TABLE_NAME]
+	var url := "%s/rest/v1/rpc/%s" % [SUPABASE_URL, SUBMIT_RPC_NAME]
 	var body_dict := {
-		"run_uid": uid,
-		"player_name": entry["player_name"],
-		"category": entry["category"],
-		"time_seconds": entry["time_seconds"],
-		"level": entry["level"],
-		"total_kills": entry["total_kills"],
-		"bosses_defeated": entry["bosses_defeated"],
-		"game_version": entry["game_version"]
+		"p_run_uid": uid,
+		"p_player_name": entry["player_name"],
+		"p_category": entry["category"],
+		"p_time_seconds": entry["time_seconds"],
+		"p_level": entry["level"],
+		"p_total_kills": entry["total_kills"],
+		"p_bosses_defeated": entry["bosses_defeated"],
+		"p_game_version": entry["game_version"],
+		"p_owner_token": _ensure_player_token()
 	}
 	var json_body := JSON.stringify(body_dict)
 
@@ -469,11 +482,10 @@ func submit_current_run(raw_player_name: String):
 		var web_headers := {
 			"apikey": SUPABASE_PUBLISHABLE_KEY,
 			"Accept": "application/json",
-			"Content-Type": "application/json",
-			"Prefer": "return=representation"
+			"Content-Type": "application/json"
 		}
 		_web_fetch_async(url, "POST", web_headers, json_body, func(ok: bool, status: int, body_txt: String, err_msg: String):
-			_handle_submit_response(ok, status, body_txt, err_msg, uid, entry)
+			_handle_submit_response(ok, status, body_txt, err_msg, uid, entry, prev_saved_name)
 		)
 		return
 
@@ -489,8 +501,7 @@ func submit_current_run(raw_player_name: String):
 	_active_submit_req = req
 
 	var headers := _make_headers([
-		"Content-Type: application/json",
-		"Prefer: return=representation"
+		"Content-Type: application/json"
 	])
 
 	req.request_completed.connect(func(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray):
@@ -500,7 +511,7 @@ func submit_current_run(raw_player_name: String):
 			_active_submit_req = null
 		var ok := (result == HTTPRequest.RESULT_SUCCESS)
 		var err_str := "" if ok else "sem conexão ou tempo esgotado (código %d)" % result
-		_handle_submit_response(ok, response_code, body.get_string_from_utf8(), err_str, uid, entry)
+		_handle_submit_response(ok, response_code, body.get_string_from_utf8(), err_str, uid, entry, prev_saved_name)
 	)
 
 	var err := req.request(url, headers, HTTPClient.METHOD_POST, json_body)
@@ -510,24 +521,27 @@ func submit_current_run(raw_player_name: String):
 		_active_submit_req = null
 		submission_finished.emit(false, entry, "Salvo localmente. Sem conexão para enviar ao ranking global.")
 
-func _handle_submit_response(ok: bool, response_code: int, body_txt: String, net_err: String, uid: String, entry: Dictionary):
-	if ok and (response_code == 200 or response_code == 201):
+func _handle_submit_response(ok: bool, response_code: int, body_txt: String, net_err: String, uid: String, entry: Dictionary, prev_saved_name: String = ""):
+	if ok and response_code >= 200 and response_code < 300:
 		var parsed = JSON.parse_string(body_txt)
-		var remote_row: Dictionary = {}
-		if parsed is Array and parsed.size() > 0 and parsed[0] is Dictionary:
-			remote_row = parsed[0]
-		_mark_run_synced(uid, remote_row)
-		entry["synced"] = true
-		fetch_global_rankings(entry["category"])
-		submission_finished.emit(true, entry, "")
-		return
-
-	if ok and response_code == 409:
-		_mark_run_synced(uid)
-		entry["synced"] = true
-		fetch_global_rankings(entry["category"])
-		submission_finished.emit(true, entry, "")
-		return
+		if parsed is Dictionary:
+			if bool(parsed.get("ok", false)):
+				_mark_run_synced(uid, parsed)
+				entry["synced"] = true
+				entry["submit_status"] = str(parsed.get("status", "inserted"))
+				entry["best_time"] = float(parsed.get("time_seconds", entry.get("time_seconds", 0.0)))
+				entry["previous_time"] = float(parsed.get("previous_time", 0.0))
+				fetch_global_rankings(entry["category"])
+				submission_finished.emit(true, entry, "")
+				return
+			var rej_status := str(parsed.get("status", "rejected"))
+			if rej_status == "name_taken":
+				last_player_name = prev_saved_name
+				_save_local_data()
+			var rpc_msg := str(parsed.get("message", "Apelido inválido ou já utilizado."))
+			entry["submit_status"] = rej_status
+			submission_finished.emit(false, entry, rpc_msg)
+			return
 
 	var msg := net_err if not ok else _describe_http_status(response_code, body_txt)
 	submission_finished.emit(false, entry, "Salvo localmente, mas falhou ao enviar online: " + msg)
